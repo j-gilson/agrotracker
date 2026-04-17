@@ -1,92 +1,119 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   ScrollView,
   SafeAreaView,
-  Alert,
 } from 'react-native';
 import { useCreateAnimal } from '../viewmodels/useCreateAnimal';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
+import { theme } from '../../core/theme';
+import { AppRoutes } from '../../core/routes/AppRoutes';
 
 export const CreateAnimalScreen: React.FC = () => {
   const params = useLocalSearchParams();
 
-  // ✅ NORMALIZAÇÃO SEGURA
+  // ✅ leitura segura do parâmetro vindo da rota
   const fazendaId =
-  typeof params.fazendaId === 'string'
-    ? params.fazendaId
-    : params.fazendaId?.[0];
-
- 
+    typeof params.fazendaId === 'string'
+      ? params.fazendaId
+      : Array.isArray(params.fazendaId)
+      ? params.fazendaId[0]
+      : undefined;
 
   const [nome, setNome] = useState('');
   const [raca, setRaca] = useState('');
   const [idade, setIdade] = useState('');
   const [peso, setPeso] = useState('');
 
-  const { createAnimal, loading, error, success, resetState } =
-    useCreateAnimal();
+  const {
+    createAnimal,
+    createdAnimal,
+    loading,
+    error,
+    success,
+    resetState,
+  } = useCreateAnimal();
+
+  const { showSnackbar } = useSnackbar();
+
+  const nomeError =
+    nome.length > 0 && nome.trim().length < 2
+      ? 'Informe um nome válido.'
+      : undefined;
+
+  const racaError =
+    raca.length > 0 && raca.trim().length < 2
+      ? 'Informe a raça do animal.'
+      : undefined;
+
+  const idadeError =
+    idade.length > 0 &&
+    (Number.isNaN(Number(idade)) || Number(idade) < 0)
+      ? 'Digite uma idade válida.'
+      : undefined;
+
+  const pesoError =
+    peso.length > 0 &&
+    (Number.isNaN(Number(peso)) || Number(peso) <= 0)
+      ? 'Digite um peso maior que zero.'
+      : undefined;
+
+  const isFormValid =
+    !!fazendaId &&
+    nome.trim().length >= 2 &&
+    raca.trim().length >= 2 &&
+    idade.trim().length > 0 &&
+    peso.trim().length > 0 &&
+    !nomeError &&
+    !racaError &&
+    !idadeError &&
+    !pesoError;
+
+  useEffect(() => {
+    if (!success) return;
+
+    showSnackbar({
+      message: createdAnimal
+        ? `${createdAnimal.nome} cadastrado com sucesso.`
+        : 'Animal cadastrado com sucesso.',
+      variant: 'success',
+    });
+
+    resetState();
+
+    if (createdAnimal?.id) {
+      router.replace(
+        AppRoutes.ANIMAL_DETAIL(createdAnimal.id)
+      );
+      return;
+    }
+
+    router.back();
+  }, [
+    success,
+    createdAnimal,
+    resetState,
+    showSnackbar,
+  ]);
 
   const handleCreate = async () => {
-    if (!nome || !raca || !idade || !peso) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      return;
-    }
-
-    if (!fazendaId) {
-      Alert.alert('Erro', 'Fazenda não identificada.');
-      console.log('ERRO CRÍTICO: fazendaId não veio no parametro');
-      return;
-      
-    }
-
-    const idadeNumber = Number(idade);
-    const pesoNumber = Number(peso);
-
-    if (isNaN(idadeNumber) || isNaN(pesoNumber)) {
-      Alert.alert('Erro', 'Idade e peso devem ser números válidos.');
-      return;
-    }
+    if (!isFormValid || !fazendaId) return;
 
     await createAnimal({
-      nome,
-      raca,
-      idade: idadeNumber,
-      peso: pesoNumber,
+      nome: nome.trim(),
+      raca: raca.trim(),
+      idade: Number(idade),
+      peso: Number(peso),
       fazendaId,
     });
-    console.log('CRIANDO ANIMAL COM:', {
-      nome,
-      raca,
-      idade,
-      peso,
-      fazendaId
-   });
   };
 
-  const handleReset = () => {
-    setNome('');
-    setRaca('');
-    setIdade('');
-    setPeso('');
-    resetState();
+  const handleBackToInventario = () => {
+    router.replace(AppRoutes.INVENTARIO);
   };
-
-  if (success) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.successText}>Animal cadastrado com sucesso!</Text>
-        <TouchableOpacity style={styles.button} onPress={handleReset}>
-          <Text style={styles.buttonText}>Cadastrar Outro</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -98,72 +125,78 @@ export const CreateAnimalScreen: React.FC = () => {
           </Text>
         </View>
 
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nome do Animal</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex: Mimosa"
-              value={nome}
-              onChangeText={setNome}
-              placeholderTextColor="#999"
-            />
-          </View>
+        <Card padding={20} shadow style={styles.form}>
+          <Input
+            label="Nome do Animal"
+            placeholder="Ex: Mimosa"
+            value={nome}
+            onChangeText={setNome}
+            returnKeyType="next"
+            error={nomeError}
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Raça</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex: Nelore"
-              value={raca}
-              onChangeText={setRaca}
-              placeholderTextColor="#999"
-            />
-          </View>
+          <Input
+            label="Raça"
+            placeholder="Ex: Nelore"
+            value={raca}
+            onChangeText={setRaca}
+            returnKeyType="next"
+            error={racaError}
+          />
 
           <View style={styles.row}>
-            <View style={[styles.inputGroup, styles.flexItem, styles.marginRight]}>
-              <Text style={styles.label}>Idade (anos)</Text>
-              <TextInput
-                style={styles.input}
+            <View style={[styles.flexItem, styles.marginRight]}>
+              <Input
+                label="Idade (anos)"
                 placeholder="Ex: 3"
                 value={idade}
                 onChangeText={setIdade}
                 keyboardType="numeric"
-                placeholderTextColor="#999"
+                returnKeyType="next"
+                error={idadeError}
               />
             </View>
 
-            <View style={[styles.inputGroup, styles.flexItem]}>
-              <Text style={styles.label}>Peso (kg)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ex: 450.5"
+            <View style={styles.flexItem}>
+              <Input
+                label="Peso (kg)"
+                placeholder="Ex: 450"
                 value={peso}
                 onChangeText={setPeso}
                 keyboardType="numeric"
-                placeholderTextColor="#999"
+                returnKeyType="done"
+                onSubmitEditing={handleCreate}
+                error={pesoError}
               />
             </View>
           </View>
 
-          {error && <Text style={styles.errorText}>{error}</Text>}
+          {!fazendaId && (
+            <>
+              <ErrorState message="Nenhuma fazenda foi selecionada para este cadastro." />
 
-          <TouchableOpacity
-            style={[
-              styles.button,
-              loading ? styles.buttonDisabled : null,
-            ]}
+              <Button
+                fullWidth
+                variant="secondary"
+                title="Voltar e Selecionar Fazenda"
+                onPress={handleBackToInventario}
+                style={styles.backButton}
+              />
+            </>
+          )}
+
+          {error ? (
+            <ErrorState message={error} />
+          ) : null}
+
+          <Button
+            fullWidth
+            title="Cadastrar Animal"
             onPress={handleCreate}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.buttonText}>Cadastrar Animal</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+            loading={loading}
+            disabled={!isFormValid}
+          />
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -172,90 +205,46 @@ export const CreateAnimalScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.colors.backgroundMuted,
   },
+
   scrollContainer: {
-    padding: 20,
+    padding: theme.spacing.lg,
   },
+
   header: {
-    marginBottom: 30,
+    marginBottom: theme.spacing.xl + theme.spacing.xs,
   },
+
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2E7D32',
+    fontSize: theme.typography.fontSize.display,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.primary,
   },
+
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 5,
+    fontSize: theme.typography.fontSize.md,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs - 3,
   },
+
   form: {
-    backgroundColor: '#FFF',
-    borderRadius: 15,
-    padding: 20,
     elevation: 4,
   },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#F9F9F9',
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-    color: '#333',
-  },
+
   row: {
     flexDirection: 'row',
   },
+
   flexItem: {
     flex: 1,
   },
+
   marginRight: {
-    marginRight: 10,
+    marginRight: theme.spacing.sm - 2,
   },
-  button: {
-    backgroundColor: '#2E7D32',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonDisabled: {
-    backgroundColor: '#A5D6A7',
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: '#D32F2F',
-    textAlign: 'center',
-    marginBottom: 15,
-    fontWeight: '500',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F5F5F5',
-  },
-  successText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    textAlign: 'center',
-    marginBottom: 30,
+
+  backButton: {
+    marginBottom: theme.spacing.md,
   },
 });

@@ -5,13 +5,14 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   SafeAreaView,
-  TouchableOpacity,
 } from 'react-native';
 import { useAnimals } from '../viewmodels/useAnimals';
 import { Animal } from '../../domain/entities/Animal';
+import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
+import { theme } from '../../core/theme';
+import { AppRoutes } from '../../core/routes/AppRoutes';
 
 export const AnimalListScreen: React.FC = () => {
   const { fazendaId } = useLocalSearchParams();
@@ -25,7 +26,7 @@ export const AnimalListScreen: React.FC = () => {
   );
 
   const renderItem = ({ item }: { item: Animal }) => (
-    <View style={styles.card}>
+    <Card marginBottom={12} style={styles.card}>
       <View style={styles.cardHeader}>
         <Text style={styles.animalName}>{item.nome}</Text>
         <Text style={styles.animalRaca}>{item.raca}</Text>
@@ -34,33 +35,29 @@ export const AnimalListScreen: React.FC = () => {
         <Text style={styles.animalInfo}>Idade: {item.idade} anos</Text>
         <Text style={styles.animalInfo}>Peso: {item.peso} kg</Text>
       </View>
-    </View>
+    </Card>
   );
 
   const renderEmpty = () => (
-    <View style={styles.centered}>
-      <Text style={styles.message}>Nenhum animal encontrado.</Text>
-    </View>
+    <EmptyState
+      buttonText="Cadastrar primeiro animal"
+      onPress={() =>
+        router.push({
+          pathname: AppRoutes.CREATE_ANIMAL,
+          params: { fazendaId },
+        })
+      }
+      subtitle="Cadastre o primeiro animal desta fazenda para começar a organizar o rebanho."
+      title="Nenhum animal encontrado."
+    />
   );
 
   if (loading && animals.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2E7D32" />
-        <Text style={styles.loadingText}>Carregando rebanho...</Text>
-      </View>
-    );
+    return <Loading text="Carregando rebanho..." variant="list" />;
   }
 
   if (error && animals.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Text style={[styles.message, styles.errorText]}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={refresh}>
-          <Text style={styles.retryButtonText}>Tentar novamente</Text>
-        </TouchableOpacity>
-      </View>
-    );
+    return <ErrorState message={error} onRetry={refresh} />;
   }
 
   return (
@@ -68,21 +65,21 @@ export const AnimalListScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Meu Rebanho</Text>
-          <TouchableOpacity 
-            style={styles.addButton} 
+          <Button
             onPress={() => router.push({
-              pathname: '/animal/create',
+              pathname: AppRoutes.CREATE_ANIMAL,
               params: { fazendaId }
             })}
-          >
-            <Text style={styles.addButtonText}>+ Novo</Text>
-          </TouchableOpacity>
+            style={styles.addButton}
+            title="+ Novo"
+            variant="secondary"
+          />
         </View>
       </View>
 
       <FlatList
         data={animals}
-        keyExtractor={(item) => item.id ?? Math.random().toString()}
+        keyExtractor={(item, index) => item.id ?? index.toString()}
         renderItem={renderItem}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={styles.listContainer}
@@ -90,7 +87,7 @@ export const AnimalListScreen: React.FC = () => {
           <RefreshControl
             refreshing={loading}
             onRefresh={refresh}
-            colors={['#2E7D32']}
+            colors={[theme.colors.primary]}
           />
         }
       />
@@ -101,14 +98,14 @@ export const AnimalListScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.colors.backgroundMuted,
   },
   header: {
-    padding: 20,
-    backgroundColor: '#2E7D32',
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.primary,
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
-    marginBottom: 10,
+    marginBottom: theme.spacing.sm - 2,
   },
   headerTop: {
     flexDirection: 'row',
@@ -116,52 +113,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: theme.typography.fontSize.xxl,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textInverse,
   },
   addButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  addButtonText: {
-    color: '#2E7D32',
-    fontWeight: 'bold',
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderColor: theme.colors.transparent,
   },
   listContainer: {
-    padding: 10,
+    padding: theme.spacing.sm - 2,
     flexGrow: 1,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderColor: theme.colors.border,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.xs,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
-    paddingBottom: 8,
+    borderBottomColor: theme.colors.borderSoft,
+    paddingBottom: theme.spacing.xs,
   },
   animalName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
   animalRaca: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
     fontStyle: 'italic',
   },
   cardContent: {
@@ -169,37 +153,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   animalInfo: {
-    fontSize: 15,
-    color: '#444',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  message: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    color: '#2E7D32',
-    fontSize: 16,
-  },
-  errorText: {
-    color: '#D32F2F',
-    marginBottom: 15,
-  },
-  retryButton: {
-    backgroundColor: '#2E7D32',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize.sm + 1,
+    color: theme.colors.textPrimary,
   },
 });

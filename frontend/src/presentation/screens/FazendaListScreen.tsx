@@ -1,33 +1,40 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   SafeAreaView,
-  TouchableOpacity,
 } from 'react-native';
 import { useFazendas } from '../viewmodels/useFazendas';
 import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
+import { theme } from '../../core/theme';
+import { AppRoutes } from '../../core/routes/AppRoutes';
 
 export const FazendaListScreen: React.FC = () => {
   const { fazendas, loading, error, refresh } = useFazendas();
 
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
   const handleFazendaPress = (fazendaId: string) => {
     router.push({
-      pathname: '/animal',
+      pathname: AppRoutes.ANIMAL_LIST,
       params: { fazendaId },
     });
   };
 
   const renderItem = ({ item }: { item: Fazenda }) => (
-    <TouchableOpacity
-      style={styles.card}
+    <Card
+      marginBottom={12}
       onPress={() => item.id && handleFazendaPress(item.id)}
-      activeOpacity={0.7}
+      style={styles.card}
     >
       <View style={styles.cardHeader}>
         <Text style={styles.fazendaName}>{item.nome}</Text>
@@ -35,33 +42,24 @@ export const FazendaListScreen: React.FC = () => {
       <View style={styles.cardContent}>
         <Text style={styles.fazendaLocation}>📍 {item.localizacao}</Text>
       </View>
-    </TouchableOpacity>
+    </Card>
   );
 
   const renderEmpty = () => (
-    <View style={styles.centered}>
-      <Text style={styles.message}>Nenhuma fazenda encontrada.</Text>
-    </View>
+    <EmptyState
+      buttonText="Cadastrar primeira fazenda"
+      onPress={() => router.push({ pathname: AppRoutes.CREATE_FAZENDA })}
+      subtitle="Registre uma propriedade rural para começar a organizar seus animais."
+      title="Nenhuma fazenda encontrada."
+    />
   );
 
   if (loading && fazendas.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2E7D32" />
-        <Text style={styles.loadingText}>Carregando fazendas...</Text>
-      </View>
-    );
+    return <Loading text="Carregando fazendas..." variant="list" />;
   }
 
   if (error && fazendas.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Text style={[styles.message, styles.errorText]}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={refresh}>
-          <Text style={styles.retryButtonText}>Tentar novamente</Text>
-        </TouchableOpacity>
-      </View>
-    );
+    return <ErrorState message={error} onRetry={refresh} />;
   }
 
   return (
@@ -69,18 +67,18 @@ export const FazendaListScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Minhas Fazendas</Text>
-          <TouchableOpacity
+          <Button
+            onPress={() => router.push({ pathname: AppRoutes.CREATE_FAZENDA })}
             style={styles.addButton}
-            onPress={() => router.push('/fazendas/create')}
-          >
-            <Text style={styles.addButtonText}>+ Novo</Text>
-          </TouchableOpacity>
+            title="+ Novo"
+            variant="secondary"
+          />
         </View>
       </View>
 
       <FlatList
         data={fazendas}
-        keyExtractor={(item) => item.id!}
+        keyExtractor={(item, index) => item.id ?? index.toString()}
         renderItem={renderItem}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={styles.listContainer}
@@ -88,7 +86,7 @@ export const FazendaListScreen: React.FC = () => {
           <RefreshControl
             refreshing={loading}
             onRefresh={refresh}
-            colors={['#2E7D32']}
+            colors={[theme.colors.primary]}
           />
         }
       />
@@ -99,14 +97,14 @@ export const FazendaListScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.colors.backgroundMuted,
   },
   header: {
-    padding: 20,
-    backgroundColor: '#2E7D32',
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.primary,
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
-    marginBottom: 10,
+    marginBottom: theme.spacing.sm - 2,
   },
   headerTop: {
     flexDirection: 'row',
@@ -114,82 +112,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: theme.typography.fontSize.xxl,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textInverse,
   },
   addButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  addButtonText: {
-    color: '#2E7D32',
-    fontWeight: 'bold',
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderColor: theme.colors.transparent,
   },
   listContainer: {
-    padding: 10,
+    padding: theme.spacing.sm - 2,
     flexGrow: 1,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderColor: theme.colors.border,
   },
   cardHeader: {
-    marginBottom: 8,
+    marginBottom: theme.spacing.xs,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
-    paddingBottom: 8,
+    borderBottomColor: theme.colors.borderSoft,
+    paddingBottom: theme.spacing.xs,
   },
   fazendaName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   fazendaLocation: {
-    fontSize: 15,
-    color: '#666',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  message: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    color: '#2E7D32',
-    fontSize: 16,
-  },
-  errorText: {
-    color: '#D32F2F',
-    marginBottom: 15,
-  },
-  retryButton: {
-    backgroundColor: '#2E7D32',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize.sm + 1,
+    color: theme.colors.textSecondary,
   },
 });

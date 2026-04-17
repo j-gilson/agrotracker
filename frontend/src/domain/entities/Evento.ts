@@ -1,17 +1,11 @@
-export enum TipoEvento {
-  VACINACAO = "VACINACAO",
-  PESAGEM = "PESAGEM",
-  PARTO = "PARTO",
-  MEDICACAO = "MEDICACAO",
-  OUTRO = "OUTRO"
-}
-
 export interface EventoProps {
   id?: string;
   animalId: string;
-  tipo: TipoEvento;
-  descricao: string;
-  data: Date;
+  tipoEvento: string;
+  dataHora: Date;
+  pesoKg?: number;
+  vacina?: string;
+  observacoes?: string;
 }
 
 export class Evento {
@@ -20,13 +14,24 @@ export class Evento {
   }
 
   private validate() {
-    if (!this.props.animalId) throw new Error("ID do animal é obrigatório");
-    if (!this.props.descricao) throw new Error("Descrição é obrigatória");
+    if (!this.props.animalId) {
+      throw new Error("ID do animal é obrigatório");
+    }
+
+    if (!this.props.tipoEvento) {
+      throw new Error("Tipo do evento é obrigatório");
+    }
+
+    if (!this.props.dataHora) {
+      throw new Error("Data e hora são obrigatórias");
+    }
   }
 
   get id() { return this.props.id; }
   get animalId() { return this.props.animalId; }
-  get tipo() { return this.props.tipo; }
-  get descricao() { return this.props.descricao; }
-  get data() { return this.props.data; }
+  get tipoEvento() { return this.props.tipoEvento; }
+  get dataHora() { return this.props.dataHora; }
+  get pesoKg() { return this.props.pesoKg; }
+  get vacina() { return this.props.vacina; }
+  get observacoes() { return this.props.observacoes; }
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Animal } from '../../domain/entities/Animal';
 import { GetAnimals } from '../../domain/usecases/animal/GetAnimals';
 import { AnimalRepositoryImpl } from '../../data/repositories/AnimalRepositoryImpl';
+import { humanizeError } from '../../core/utils/humanizeError';
 
 export const useAnimals = (fazendaId: string) => {
   const [animals, setAnimals] = useState<Animal[]>([]);
@@ -25,8 +26,13 @@ export const useAnimals = (fazendaId: string) => {
 
       const result = await getAnimalsUseCase.execute(fazendaId);
       setAnimals(result);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar animais');
+    } catch (err: unknown) {
+      setError(
+        humanizeError(
+          err,
+          'Nao foi possivel carregar os animais da fazenda no momento.'
+        )
+      );
     } finally {
       setLoading(false);
     }

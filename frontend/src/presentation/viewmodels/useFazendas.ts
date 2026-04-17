@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
 import { GetFazendas } from '../../domain/fazenda/usecases/GetFazendas';
 import { FazendaRepositoryImpl } from '../../data/fazenda/repositories/FazendaRepositoryImpl';
+import { humanizeError } from '../../core/utils/humanizeError';
 
 export const useFazendas = () => {
   const [fazendas, setFazendas] = useState<Fazenda[]>([]);
@@ -13,7 +14,7 @@ export const useFazendas = () => {
     return new GetFazendas(repository);
   }, []);
 
-  const fetchFazendas = async () => {
+  const fetchFazendas = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -21,20 +22,20 @@ export const useFazendas = () => {
       const result = await getFazendasUseCase.execute();
       setFazendas(result);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : 'Ocorreu um erro ao carregar as fazendas.';
-
-      setError(message);
+      setError(
+        humanizeError(
+          err,
+          'Nao foi possivel carregar as fazendas agora. Tente novamente.'
+        )
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, [getFazendasUseCase]);
 
   useEffect(() => {
     fetchFazendas();
-  }, []);
+  }, [fetchFazendas]);
 
   return {
     fazendas,

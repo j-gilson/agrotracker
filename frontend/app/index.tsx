@@ -1,5 +1,5 @@
-import { Redirect } from 'expo-router';
+import { HomeScreen } from '../src/presentation/screens/HomeScreen';
 
 export default function Index() {
-  return <Redirect href={{ pathname: '/fazendas' }} />;
+  return <HomeScreen />;
 }

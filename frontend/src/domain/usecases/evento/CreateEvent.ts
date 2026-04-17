@@ -6,6 +6,6 @@ export class CreateEvent {
 
   async execute(data: EventoProps): Promise<Evento> {
     const evento = new Evento(data);
-    return await this.eventoRepository.save(evento);
+    return await this.eventoRepository.create(evento);
   }
 }

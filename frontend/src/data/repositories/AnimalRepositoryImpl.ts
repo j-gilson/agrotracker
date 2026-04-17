@@ -62,6 +62,7 @@ export class AnimalRepositoryImpl implements IAnimalRepository {
   }
 
   async delete(id: string): Promise<void> {
-    throw new Error("delete() ainda não implementado.");
+    // Simula a remoção de um animal (Mock)
+    return;
   }
 }

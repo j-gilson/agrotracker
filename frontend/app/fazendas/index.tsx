@@ -1,2 +1,5 @@
 import { FazendaListScreen } from '../../src/presentation/screens/FazendaListScreen';
-export default FazendaListScreen;
+
+export default function FazendaListRoute() {
+  return <FazendaListScreen />;
+}
