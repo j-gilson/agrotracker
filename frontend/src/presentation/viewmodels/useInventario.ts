@@ -31,7 +31,7 @@ export const useInventario = () => {
       if (result.length > 0 && !selectedFazendaId) {
         setSelectedFazendaId(result[0].id || null);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
         humanizeError(
           err,
@@ -42,7 +42,11 @@ export const useInventario = () => {
   }, [getFazendasUseCase, selectedFazendaId]);
 
   const fetchAnimals = useCallback(async () => {
-    if (!selectedFazendaId) return;
+    if (!selectedFazendaId) {
+      setAnimals([]);
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);

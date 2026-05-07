@@ -18,7 +18,12 @@ export const useAnimals = (fazendaId: string) => {
 
   // ✅ FUNÇÃO ESTÁVEL (ESSENCIAL)
   const fetchAnimals = useCallback(async () => {
-    if (!fazendaId) return;
+    if (!fazendaId) {
+      setAnimals([]);
+      setError('Nenhuma fazenda foi informada para carregar os animais.');
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);

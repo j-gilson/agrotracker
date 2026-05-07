@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { CreateAnimal } from '../../domain/usecases/animal/CreateAnimal';
 import { AnimalRepositoryImpl } from '../../data/repositories/AnimalRepositoryImpl';
 import { CreateAnimalDTO } from '../../domain/dtos/AnimalDTO';
@@ -11,33 +11,38 @@ export const useCreateAnimal = () => {
   const [success, setSuccess] = useState(false);
   const [createdAnimal, setCreatedAnimal] = useState<Animal | null>(null);
 
-  // Injeção de dependência manual (idealmente via DI container ou hook de contexto)
-  const repository = new AnimalRepositoryImpl();
-  const createAnimalUseCase = new CreateAnimal(repository);
+  const repository = useMemo(() => new AnimalRepositoryImpl(), []);
+  const createAnimalUseCase = useMemo(
+    () => new CreateAnimal(repository),
+    [repository]
+  );
 
-  const createAnimal = async (data: CreateAnimalDTO) => {
-    try {
-      setLoading(true);
-      setError(null);
-      setSuccess(false);
-      setCreatedAnimal(null);
+  const createAnimal = useCallback(
+    async (data: CreateAnimalDTO) => {
+      try {
+        setLoading(true);
+        setError(null);
+        setSuccess(false);
+        setCreatedAnimal(null);
 
-      const result = await createAnimalUseCase.execute(data);
-      
-      setCreatedAnimal(result);
-      setSuccess(true);
-      return result;
-    } catch (err: unknown) {
-      const message = humanizeError(
-        err,
-        'Nao foi possivel cadastrar o animal agora. Tente novamente em instantes.'
-      );
-      setError(message);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
+        const result = await createAnimalUseCase.execute(data);
+
+        setCreatedAnimal(result);
+        setSuccess(true);
+        return result;
+      } catch (err: unknown) {
+        const message = humanizeError(
+          err,
+          'Nao foi possivel cadastrar o animal agora. Tente novamente em instantes.'
+        );
+        setError(message);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [createAnimalUseCase]
+  );
 
   const resetState = useCallback(() => {
     setError(null);

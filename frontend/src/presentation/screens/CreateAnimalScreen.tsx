@@ -100,7 +100,7 @@ export const CreateAnimalScreen: React.FC = () => {
   ]);
 
   const handleCreate = async () => {
-    if (!isFormValid || !fazendaId) return;
+    if (loading || !isFormValid || !fazendaId) return;
 
     await createAnimal({
       nome: nome.trim(),
@@ -173,7 +173,7 @@ export const CreateAnimalScreen: React.FC = () => {
 
           {!fazendaId && (
             <>
-              <ErrorState message="Nenhuma fazenda foi selecionada para este cadastro." />
+              <ErrorState message="Parâmetro obrigatório não informado: fazendaId." />
 
               <Button
                 fullWidth
@@ -194,7 +194,7 @@ export const CreateAnimalScreen: React.FC = () => {
             title="Cadastrar Animal"
             onPress={handleCreate}
             loading={loading}
-            disabled={!isFormValid}
+            disabled={loading || !isFormValid}
           />
         </Card>
       </ScrollView>

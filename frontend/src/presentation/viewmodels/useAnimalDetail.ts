@@ -1,30 +1,38 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Animal } from '../../domain/entities/Animal';
-import { Evento } from '../../domain/entities/Evento';
 import { GetAnimalById } from '../../domain/usecases/animal/GetAnimalById';
-import { GetEvents } from '../../domain/usecases/evento/GetEvents';
 import { AnimalRepositoryImpl } from '../../data/repositories/AnimalRepositoryImpl';
-import { EventoRepositoryImpl } from '../../data/repositories/EventoRepositoryImpl';
+import { Event } from '../../domain/events/entities/Event';
+import { GetEventsByAnimal } from '../../domain/events/usecases/GetEventsByAnimal';
+import { EventRepositoryImpl } from '../../data/events/repositories/EventRepositoryImpl';
 import { humanizeError } from '../../core/utils/humanizeError';
 
 export const useAnimalDetail = (animalId: string) => {
   const [animal, setAnimal] = useState<Animal | null>(null);
-  const [manejos, setManejos] = useState<Evento[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const getAnimalUseCase = useMemo(() => {
-    const repository = new AnimalRepositoryImpl();
-    return new GetAnimalById(repository);
-  }, []);
+  const animalRepository = useMemo(() => new AnimalRepositoryImpl(), []);
+  const getAnimalUseCase = useMemo(
+    () => new GetAnimalById(animalRepository),
+    [animalRepository]
+  );
 
-  const getEventsUseCase = useMemo(() => {
-    const repository = new EventoRepositoryImpl();
-    return new GetEvents(repository);
-  }, []);
+  const eventRepository = useMemo(() => new EventRepositoryImpl(), []);
+  const getEventsUseCase = useMemo(
+    () => new GetEventsByAnimal(eventRepository),
+    [eventRepository]
+  );
 
   const fetchData = useCallback(async () => {
-    if (!animalId) return;
+    if (!animalId) {
+      setAnimal(null);
+      setEvents([]);
+      setError('Nenhum animal foi informado.');
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -41,7 +49,7 @@ export const useAnimalDetail = (animalId: string) => {
         setError('Animal não encontrado.');
       }
 
-      setManejos(eventsResult);
+      setEvents(eventsResult);
     } catch (err: unknown) {
       setError(
         humanizeError(
@@ -60,7 +68,7 @@ export const useAnimalDetail = (animalId: string) => {
 
   return {
     animal,
-    manejos,
+    events,
     loading,
     error,
     refresh: fetchData,

@@ -9,15 +9,30 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useAnimalDetail } from '../viewmodels/useAnimalDetail';
-import { useLocalSearchParams } from 'expo-router';
-import { Card, EmptyState, ErrorState, Loading } from '../components';
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { Card, EmptyState, ErrorState, Loading, Button } from '../components';
 import { theme } from '../../core/theme';
 import { formatDate } from '../../core/utils/formatDate';
 import { formatWeight } from '../../core/utils/formatWeight';
+import { AppRoutes } from '../../core/routes/AppRoutes';
 
 export const AnimalDetailScreen: React.FC = () => {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { animal, manejos, loading, error, refresh } = useAnimalDetail(id || '');
+  const params = useLocalSearchParams<{ id?: string | string[] }>();
+  const animalId =
+    typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : '';
+  const { animal, events, loading, error, refresh } = useAnimalDetail(animalId);
+  const hasFocusedOnceRef = React.useRef(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!hasFocusedOnceRef.current) {
+        hasFocusedOnceRef.current = true;
+        return;
+      }
+
+      refresh();
+    }, [refresh])
+  );
 
   const InfoRow = ({ label, value }: { label: string; value: string | number | null | undefined }) => (
     <View style={styles.infoRow}>
@@ -28,6 +43,10 @@ export const AnimalDetailScreen: React.FC = () => {
 
   if (loading && !animal) {
     return <Loading text="Carregando ficha do animal..." variant="detail" />;
+  }
+
+  if (!animalId) {
+    return <ErrorState message="Parâmetro obrigatório não informado: animalId." />;
   }
 
   if (error && !animal) {
@@ -44,13 +63,26 @@ export const AnimalDetailScreen: React.FC = () => {
       >
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.title}>Ficha do Animal</Text>
-            <Text style={styles.subtitle}>{animal?.nome}</Text>
+            <Text style={styles.title}>{animal?.nome}</Text>
+            <Text style={styles.subtitle}>Ficha do animal</Text>
           </View>
-          <View style={[styles.badge, styles.badgeAtivo]}>
-            <Text style={styles.badgeText}>Ativo</Text>
-          </View>
+
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backText}>Voltar</Text>
+          </Pressable>
         </View>
+
+        {animal?.id ? (
+          <Button
+            title="Histórico"
+            variant="secondary"
+            onPress={() => {
+              const route = AppRoutes.AUDIT_ENTITY_TIMELINE('animal', animal.id!);
+              router.push(route as unknown as Href);
+            }}
+            style={styles.auditButton}
+          />
+        ) : null}
 
         <View style={styles.tabsRow}>
           <Pressable style={styles.tabActive}>
@@ -70,26 +102,36 @@ export const AnimalDetailScreen: React.FC = () => {
         </Card>
 
         <Text style={styles.sectionTitle}>Histórico de Manejos</Text>
-        {manejos.length === 0 ? (
+
+        {animal?.fazendaId ? (
+          <Button
+            title="Novo Manejo"
+            variant="secondary"
+            onPress={() =>
+              router.push(AppRoutes.CREATE_EVENT(animalId, animal.fazendaId) as unknown as Href)
+            }
+            style={styles.createEventButton}
+          />
+        ) : null}
+
+        {events.length === 0 ? (
           <Card shadow={false} style={styles.emptyCard}>
             <EmptyState title="Nenhum registro de manejo encontrado." />
           </Card>
         ) : (
-          manejos.map((m) => (
+          events.map((m) => (
             <View key={m.id} style={styles.timelineItem}>
               <View style={styles.timelineIcon}>
                 <Text style={styles.timelineIconText}>
-                  {m.tipoEvento === 'Pesagem' ? '⚖️' : '💉'}
+                  {m.type.toUpperCase() === 'PESAGEM' ? '⚖️' : '💉'}
                 </Text>
               </View>
               <Card padding={12} style={styles.timelineCard}>
                 <View style={styles.timelineHeader}>
-                  <Text style={styles.timelineTitle}>{m.tipoEvento}</Text>
-                  <Text style={styles.timelineDate}>{formatDate(m.dataHora)} {m.dataHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                  <Text style={styles.timelineTitle}>{m.type}</Text>
+                  <Text style={styles.timelineDate}>{formatDate(m.date)} {m.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                 </View>
-                {m.pesoKg ? <Text style={styles.timelineText}>Peso: {m.pesoKg} Kg</Text> : null}
-                {m.vacina ? <Text style={styles.timelineText}>Vacina: {m.vacina}</Text> : null}
-                {m.observacoes ? <Text style={styles.timelineObs}>{m.observacoes}</Text> : null}
+                <Text style={styles.timelineObs}>{m.description}</Text>
               </Card>
             </View>
           ))
@@ -111,7 +153,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: 24,
+  },
+  backButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.borderSoft,
+  },
+  backText: {
+    color: theme.colors.textPrimary,
+    fontWeight: theme.typography.fontWeight.semibold,
+    fontSize: theme.typography.fontSize.sm,
+  },
+  auditButton: {
+    marginBottom: theme.spacing.lg,
   },
   title: {
     fontSize: theme.typography.fontSize.xxl,
@@ -187,6 +243,9 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.bold,
     marginBottom: theme.spacing.md,
     color: theme.colors.textPrimary,
+  },
+  createEventButton: {
+    marginBottom: theme.spacing.md,
   },
   emptyCard: {
     backgroundColor: theme.colors.surfaceAlt,

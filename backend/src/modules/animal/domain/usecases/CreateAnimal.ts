@@ -7,21 +7,39 @@ export class CreateAnimal {
   constructor(private animalRepository: IAnimalRepository) {}
 
   async execute(data: CreateAnimalDTO): Promise<Animal> {
-    if (data.peso === undefined || !data.fazendaId) {
-      throw new Error("Peso e fazendaId são obrigatórios");
+    const nome = data.nome?.trim() ?? "";
+    const raca = data.raca?.trim() ?? "";
+    const fazendaId = data.fazendaId?.trim() ?? "";
+    const idade = Number(data.idade);
+    const peso = Number(data.peso);
+
+    if (nome.length < 2) {
+      throw new Error("O nome do animal deve ter pelo menos 2 caracteres.");
     }
 
-    if (!data.nome || !data.raca) {
-      throw new Error("Nome e raça são obrigatórios");
+    if (!raca) {
+      throw new Error("A raça do animal é obrigatória.");
+    }
+
+    if (!fazendaId) {
+      throw new Error("A fazenda do animal é obrigatória.");
+    }
+
+    if (!Number.isFinite(idade) || idade < 0) {
+      throw new Error("A idade do animal deve ser um número maior ou igual a zero.");
+    }
+
+    if (!Number.isFinite(peso) || peso <= 0) {
+      throw new Error("O peso do animal deve ser maior que zero.");
     }
 
     const animal = new Animal({
       id: uuidv4(),
-      nome: data.nome,
-      raca: data.raca,
-      idade: data.idade,
-      peso: data.peso,
-      fazendaId: data.fazendaId,
+      nome,
+      raca,
+      idade,
+      peso,
+      fazendaId,
       dataNascimento: data.dataNascimento || new Date(),
     });
 

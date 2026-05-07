@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { GetFazendas } from '../../domain/fazenda/usecases/GetFazendas';
 import { FazendaRepositoryImpl } from '../../data/fazenda/repositories/FazendaRepositoryImpl';
+import { GetAnimals } from '../../domain/usecases/animal/GetAnimals';
+import { AnimalRepositoryImpl } from '../../data/repositories/AnimalRepositoryImpl';
+import { GetEventsByFazenda } from '../../domain/events/usecases/GetEventsByFazenda';
+import { EventRepositoryImpl } from '../../data/events/repositories/EventRepositoryImpl';
 import { humanizeError } from '../../core/utils/humanizeError';
 
 export interface HomeStats {
@@ -23,19 +27,34 @@ export const useHome = () => {
     return new GetFazendas(repository);
   }, []);
 
+  const getAnimalsUseCase = useMemo(() => {
+    const repository = new AnimalRepositoryImpl();
+    return new GetAnimals(repository);
+  }, []);
+
+  const getEventsByFazendaUseCase = useMemo(() => {
+    const repository = new EventRepositoryImpl();
+    return new GetEventsByFazenda(repository);
+  }, []);
+
   const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Busca fazendas para contar
       const fazendas = await getFazendasUseCase.execute();
-      
-      // Simulação de outros dados por enquanto, já que não temos usecases globais de contagem
-      // Em um cenário real, teríamos usecases específicos para estatísticas
+      const fazendaIds = fazendas
+        .map((fazenda) => fazenda.id)
+        .filter((id): id is string => Boolean(id));
+
+      const [animalsByFazenda, eventsByFazenda] = await Promise.all([
+        Promise.all(fazendaIds.map((fazendaId) => getAnimalsUseCase.execute(fazendaId))),
+        Promise.all(fazendaIds.map((fazendaId) => getEventsByFazendaUseCase.execute(fazendaId))),
+      ]);
+
       setStats({
-        animais: 124, // Mock
-        manejos: 45,  // Mock
+        animais: animalsByFazenda.reduce((total, items) => total + items.length, 0),
+        manejos: eventsByFazenda.reduce((total, items) => total + items.length, 0),
         fazendas: fazendas.length,
       });
     } catch (err: unknown) {
@@ -48,7 +67,7 @@ export const useHome = () => {
     } finally {
       setLoading(false);
     }
-  }, [getFazendasUseCase]);
+  }, [getAnimalsUseCase, getEventsByFazendaUseCase, getFazendasUseCase]);
 
   useEffect(() => {
     fetchStats();

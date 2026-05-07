@@ -46,7 +46,7 @@ export const CreateFazendaScreen: React.FC = () => {
   }, [createdFazenda, resetState, showSnackbar, success]);
   
   const handleCreate = async () => {
-    if (!isFormValid) {
+    if (loading || !isFormValid) {
       return;
     }
 
@@ -87,7 +87,7 @@ export const CreateFazendaScreen: React.FC = () => {
           {error ? <ErrorState message={error} /> : null}
 
           <Button
-            disabled={!isFormValid}
+            disabled={loading || !isFormValid}
             fullWidth
             loading={loading}
             onPress={handleCreate}

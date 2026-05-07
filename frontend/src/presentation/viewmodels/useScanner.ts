@@ -19,11 +19,11 @@ export const useScanner = () => {
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     if (scanned) return;
+    const animalId = data.trim();
+    if (!animalId) return;
     
     setScanned(true);
-    // Em um cenário real, poderíamos validar se o QR code é de um animal
-    // Por enquanto, apenas redirecionamos para a ficha do animal com esse ID
-    router.push(AppRoutes.ANIMAL_DETAIL(data));
+    router.push(AppRoutes.ANIMAL_DETAIL(animalId));
   };
 
   const toggleFlashlight = () => {

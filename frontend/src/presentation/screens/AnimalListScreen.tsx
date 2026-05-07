@@ -1,4 +1,4 @@
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
   View,
@@ -13,17 +13,24 @@ import { Animal } from '../../domain/entities/Animal';
 import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
+import { usePermissions } from '../../core/auth/usePermissions';
 
 export const AnimalListScreen: React.FC = () => {
   const { fazendaId } = useLocalSearchParams();
-  const { animals, loading, error, refresh } = useAnimals(fazendaId as string);
+  const fazendaIdValue =
+    typeof fazendaId === 'string' ? fazendaId : Array.isArray(fazendaId) ? fazendaId[0] : '';
+  const { animals, loading, error, refresh } = useAnimals(fazendaIdValue);
+  const { canInviteMembers } = usePermissions(fazendaIdValue);
 
-  // 🔥 Atualiza sempre que voltar pra tela
   useFocusEffect(
     useCallback(() => {
       refresh();
     }, [refresh])
   );
+
+  if (!fazendaIdValue) {
+    return <ErrorState message="Parâmetro obrigatório não informado: fazendaId." />;
+  }
 
   const renderItem = ({ item }: { item: Animal }) => (
     <Card marginBottom={12} style={styles.card}>
@@ -44,7 +51,7 @@ export const AnimalListScreen: React.FC = () => {
       onPress={() =>
         router.push({
           pathname: AppRoutes.CREATE_ANIMAL,
-          params: { fazendaId },
+          params: { fazendaId: fazendaIdValue },
         })
       }
       subtitle="Cadastre o primeiro animal desta fazenda para começar a organizar o rebanho."
@@ -65,15 +72,32 @@ export const AnimalListScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Meu Rebanho</Text>
-          <Button
-            onPress={() => router.push({
-              pathname: AppRoutes.CREATE_ANIMAL,
-              params: { fazendaId }
-            })}
-            style={styles.addButton}
-            title="+ Novo"
-            variant="secondary"
-          />
+          <View style={styles.headerActions}>
+            {canInviteMembers ? (
+              <Button
+                onPress={() =>
+                  router.push({
+                    pathname: AppRoutes.FAZENDA_TEAM,
+                    params: { fazendaId: fazendaIdValue },
+                  } as unknown as Href)
+                }
+                style={styles.teamButton}
+                title="Equipe"
+                variant="ghost"
+              />
+            ) : null}
+            <Button
+              onPress={() =>
+                router.push({
+                  pathname: AppRoutes.CREATE_ANIMAL,
+                  params: { fazendaId: fazendaIdValue },
+                })
+              }
+              style={styles.addButton}
+              title="+ Novo"
+              variant="secondary"
+            />
+          </View>
         </View>
       </View>
 
@@ -112,10 +136,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
   title: {
     fontSize: theme.typography.fontSize.xxl,
     fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.textInverse,
+  },
+  teamButton: {
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderColor: theme.colors.overlaySoft,
   },
   addButton: {
     minHeight: 40,

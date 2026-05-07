@@ -4,21 +4,20 @@ import { animalApi } from "../api/animalApi";
 
 export class AnimalRepositoryImpl implements IAnimalRepository {
   async findAllByFazenda(fazendaId: string): Promise<Animal[]> {
-    const animalsData = await animalApi.fetchAnimals();
+    const animalsData = await animalApi.fetchAnimals({ fazendaId });
 
-    return animalsData
-      .filter(data => data.fazendaId === fazendaId)
-      .map(data => new Animal({
-        id: data.id,
-        nome: data.nome,
-        raca: data.raca,
-        idade: data.idade,
-        peso: data.peso,
-        fazendaId: data.fazendaId,
-        dataNascimento: data.dataNascimento
-          ? new Date(data.dataNascimento)
-          : undefined
-      }));
+    return animalsData.map(
+      (data) =>
+        new Animal({
+          id: data.id,
+          nome: data.nome,
+          raca: data.raca,
+          idade: data.idade,
+          peso: data.peso,
+          fazendaId: data.fazendaId,
+          dataNascimento: data.dataNascimento ? new Date(data.dataNascimento) : undefined,
+        })
+    );
   }
 
   async findById(id: string): Promise<Animal | undefined> {
@@ -62,7 +61,6 @@ export class AnimalRepositoryImpl implements IAnimalRepository {
   }
 
   async delete(id: string): Promise<void> {
-    // Simula a remoção de um animal (Mock)
-    return;
+    await animalApi.deleteAnimal(id);
   }
 }
