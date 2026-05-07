@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,19 +6,32 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { useManejos } from '../viewmodels/useManejos';
-import { router } from 'expo-router';
-import { Evento } from '../../domain/entities/Evento';
+import { router, useFocusEffect } from 'expo-router';
+import { Event } from '../../domain/events/entities/Event';
 import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { formatDate } from '../../core/utils/formatDate';
 
 export const ManejosScreen: React.FC = () => {
-  const { manejos, loading, error, refresh } = useManejos();
+  const { fazendas, selectedFazendaId, setSelectedFazendaId, events, loading, error, refresh } = useManejos();
+  const hasFocusedOnceRef = useRef(false);
 
-  const renderManejoItem = ({ item }: { item: Evento }) => (
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasFocusedOnceRef.current) {
+        hasFocusedOnceRef.current = true;
+        return;
+      }
+
+      refresh();
+    }, [refresh])
+  );
+
+  const renderManejoItem = ({ item }: { item: Event }) => (
     <Card
       marginBottom={16}
       onPress={() => router.push(AppRoutes.ANIMAL_DETAIL(item.animalId))}
@@ -26,28 +39,24 @@ export const ManejosScreen: React.FC = () => {
     >
       <View style={styles.cardHeader}>
         <View style={styles.typeBadge}>
-          <Text style={styles.typeText}>{item.tipoEvento}</Text>
+          <Text style={styles.typeText}>{item.type}</Text>
         </View>
-        <Text style={styles.dateText}>{formatDate(item.dataHora)} {item.dataHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+        <Text style={styles.dateText}>{formatDate(item.date)} {item.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
       </View>
       
       <View style={styles.cardContent}>
         <Text style={styles.animalIdText}>Animal ID: {item.animalId}</Text>
-        {item.pesoKg ? <Text style={styles.infoText}>⚖️ Peso: {item.pesoKg} Kg</Text> : null}
-        {item.vacina ? <Text style={styles.infoText}>💉 Vacina: {item.vacina}</Text> : null}
-        {item.observacoes ? (
-          <Text style={styles.obsText} numberOfLines={2}>
-            💬 {item.observacoes}
-          </Text>
-        ) : null}
+        <Text style={styles.obsText} numberOfLines={2}>
+          💬 {item.description}
+        </Text>
       </View>
     </Card>
   );
 
   const renderEmpty = () => (
     <EmptyState
-      subtitle="Os eventos de manejo mais recentes aparecerão aqui assim que a integração estiver ativa."
-      title="Nenhum manejo registrado recentemente."
+      subtitle="Registre um manejo para começar a preencher o histórico."
+      title="Nenhum manejo encontrado."
     />
   );
 
@@ -58,13 +67,40 @@ export const ManejosScreen: React.FC = () => {
         <Text style={styles.subtitle}>Histórico de atividades recentes</Text>
       </View>
 
-      {loading && manejos.length === 0 ? (
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterLabel}>Filtrar por Fazenda:</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.fazendaList}>
+          {fazendas.map((f) => (
+            <Card
+              key={f.id}
+              onPress={() => setSelectedFazendaId(f.id || null)}
+              padding={0}
+              shadow={false}
+              style={[
+                styles.fazendaChip,
+                selectedFazendaId === f.id && styles.fazendaChipSelected,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.fazendaChipText,
+                  selectedFazendaId === f.id && styles.fazendaChipTextSelected,
+                ]}
+              >
+                {f.nome}
+              </Text>
+            </Card>
+          ))}
+        </ScrollView>
+      </View>
+
+      {loading && events.length === 0 ? (
         <Loading text="Carregando manejos..." variant="list" />
       ) : error ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : (
         <FlatList
-          data={manejos}
+          data={events}
           keyExtractor={(item, index) => item.id ?? index.toString()}
           renderItem={renderManejoItem}
           ListEmptyComponent={renderEmpty}
@@ -75,11 +111,7 @@ export const ManejosScreen: React.FC = () => {
         />
       )}
 
-      <Button
-        onPress={() => router.push({ pathname: AppRoutes.SCANNER })}
-        style={styles.fab}
-        title="Novo Manejo"
-      />
+      <Button onPress={() => router.push({ pathname: AppRoutes.SCANNER })} style={styles.fab} title="Novo Manejo" />
     </SafeAreaView>
   );
 };
@@ -100,6 +132,42 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.textSecondary,
+  },
+  filterContainer: {
+    paddingBottom: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderSubtle,
+  },
+  filterLabel: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+    marginLeft: theme.spacing.lg,
+    marginBottom: theme.spacing.xs,
+  },
+  fazendaList: {
+    paddingLeft: theme.spacing.lg,
+  },
+  fazendaChip: {
+    minHeight: 0,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.backgroundMuted,
+    marginRight: theme.spacing.sm - 2,
+    borderWidth: 1,
+    borderColor: theme.colors.borderSoft,
+  },
+  fazendaChipSelected: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  fazendaChipText: {
+    color: theme.colors.textSecondary,
+    fontWeight: theme.typography.fontWeight.semibold,
+  },
+  fazendaChipTextSelected: {
+    color: theme.colors.textInverse,
   },
   listContent: {
     padding: theme.spacing.md,
