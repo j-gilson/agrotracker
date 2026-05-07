@@ -1,7 +1,8 @@
 import { appConfig } from '../config/appConfig';
 import { env } from '../config/env';
+import { sessionStore } from '../auth/SessionStore';
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface RequestOptions {
   body?: unknown;
@@ -42,11 +43,19 @@ const parseErrorPayload = async (response: Response): Promise<unknown> => {
 };
 
 const getFriendlyErrorMessage = (status: number, statusText: string, payload?: unknown): string => {
-  if (payload && typeof payload === 'object' && 'error' in payload) {
-    const errorMessage = payload.error;
+  if (payload && typeof payload === 'object') {
+    if ('error' in payload) {
+      const errorMessage = (payload as { error?: unknown }).error;
+      if (typeof errorMessage === 'string' && errorMessage.trim()) {
+        return errorMessage;
+      }
+    }
 
-    if (typeof errorMessage === 'string' && errorMessage.trim()) {
-      return errorMessage;
+    if ('message' in payload) {
+      const errorMessage = (payload as { message?: unknown }).message;
+      if (typeof errorMessage === 'string' && errorMessage.trim()) {
+        return errorMessage;
+      }
     }
   }
 
@@ -83,10 +92,17 @@ const request = async <TResponse>(
   );
 
   try {
+    const cachedToken = sessionStore.getCached()?.token;
+    const authHeader =
+      cachedToken && !options.headers?.Authorization
+        ? { Authorization: `Bearer ${cachedToken}` }
+        : undefined;
+
     const response = await fetch(buildUrl(path), {
       method,
       headers: {
         'Content-Type': 'application/json',
+        ...(authHeader ?? {}),
         ...options.headers,
       },
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
@@ -153,6 +169,8 @@ export const apiClient = {
     request<TResponse>('POST', path, { ...options, body }),
   put: <TResponse>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>) =>
     request<TResponse>('PUT', path, { ...options, body }),
+  patch: <TResponse>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>) =>
+    request<TResponse>('PATCH', path, { ...options, body }),
   delete: <TResponse>(path: string, options?: Omit<RequestOptions, 'body'>) =>
     request<TResponse>('DELETE', path, options),
 };
