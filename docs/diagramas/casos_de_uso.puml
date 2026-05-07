@@ -1,0 +1,102 @@
+@startuml
+skinparam actorStyle awesome
+left to right direction
+
+header AgroTracker - Relatório Técnico
+title Diagrama de Casos de Uso - Plataforma AgroTracker (Consolidado)
+
+actor "Usuário Não Autenticado" as Guest
+actor "Funcionário" as Worker
+actor "Administrador" as Admin
+
+' Herança: Admin possui todas as capacidades do Worker
+Admin -up-|> Worker
+
+rectangle "Plataforma AgroTracker" {
+
+  package "Autenticação e Sessão" {
+    usecase "Criar Conta" as UC1
+    usecase "Realizar Login" as UC2
+    usecase "Restaurar Sessão Autenticada" as UC3
+  }
+
+  package "Gestão de Fazendas" {
+    usecase "Listar Fazendas Vinculadas" as UC4
+    usecase "Cadastrar Nova Fazenda" as UC5
+    usecase "Editar Dados da Fazenda" as UC6
+  }
+
+  package "Gestão de Equipe (Multi-tenant)" {
+    usecase "Convidar Novo Membro" as UC7
+    usecase "Aceitar Convite de Fazenda" as UC8
+    usecase "Listar Equipe da Fazenda" as UC9
+    usecase "Gerenciar Papéis e Permissões" as UC10
+    usecase "Ativar/Desativar Membro" as UC11
+    usecase "Remover Membro da Equipe" as UC12
+  }
+
+  package "Gestão de Animais e Rastreabilidade" {
+    usecase "Cadastrar Animal Manualmente" as UC13
+    usecase "Cadastrar Animal via Scanner" as UC13_QR
+    usecase "Listar Rebanho" as UC14
+    usecase "Consultar Animal por Código" as UC15
+    usecase "Editar Dados do Animal" as UC16
+    usecase "Excluir Registro de Animal" as UC17
+    usecase "Escanear QR Code do Brinco" as UC21
+  }
+
+  package "Eventos e Operações de Campo" {
+    usecase "Registrar Evento de Manejo" as UC18
+    usecase "Visualizar Histórico de Manejos" as UC19
+    usecase "Consultar Inventário Operacional" as UC20
+  }
+
+  package "Auditoria e Governança" {
+    usecase "Consultar Auditoria da Fazenda" as UC22
+    usecase "Consultar Timeline da Entidade" as UC23
+    usecase "Consultar Auditoria por Usuário" as UC24
+  }
+}
+
+' Relacionamentos Usuário Não Autenticado
+Guest --> UC1
+Guest --> UC2
+Guest --> UC8
+
+' Relacionamentos Funcionário
+Worker --> UC3
+Worker --> UC4
+Worker --> UC13
+Worker --> UC13_QR
+Worker --> UC14
+Worker --> UC15
+Worker --> UC16
+Worker --> UC18
+Worker --> UC19
+Worker --> UC20
+Worker --> UC21
+
+' Relacionamentos Administrador
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+Admin --> UC17
+Admin --> UC22
+Admin --> UC23
+Admin --> UC24
+
+' Relacionamentos de Inclusão/Extensão
+UC21 ..> UC15 : <<include>> : "Extrai código e busca"
+UC21 ..> UC13_QR : <<extend>> : "Se código não cadastrado"
+
+' Inclusão de Autenticação para casos críticos (opcional no diagrama mas real no sistema)
+UC5 ..> UC3 : <<include>>
+UC13 ..> UC3 : <<include>>
+UC18 ..> UC3 : <<include>>
+UC22 ..> UC3 : <<include>>
+
+@enduml
