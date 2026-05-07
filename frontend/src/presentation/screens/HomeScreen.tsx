@@ -8,18 +8,12 @@ import {
 } from 'react-native';
 import { useHome } from '../viewmodels/useHome';
 import { router } from 'expo-router';
-import { Button, Card, ErrorState, Loading } from '../components';
+import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 
 export const HomeScreen: React.FC = () => {
   const { stats, loading, error, refresh } = useHome();
-
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     refresh();
-  //   }, [refresh])
-  // );
 
   const handleScanPress = () => {
     router.push({ pathname: AppRoutes.SCANNER });
@@ -74,14 +68,21 @@ export const HomeScreen: React.FC = () => {
 
         {error ? (
           <ErrorState message={error} onRetry={refresh} />
+        ) : stats.fazendas === 0 ? (
+          <Card shadow={false}>
+            <EmptyState
+              title="Nenhuma fazenda cadastrada"
+              subtitle="Cadastre sua primeira fazenda para visualizar indicadores reais do sistema."
+              buttonText="Cadastrar fazenda"
+              onPress={handleNovaFazendaPress}
+            />
+          </Card>
         ) : (
           <View style={styles.quickActionsRow}>
             <StatCard label="Animais" value={stats.animais} />
             <StatCard label="Manejos" value={stats.manejos} />
             <StatCard label="Fazendas" value={stats.fazendas} />
           </View>
-          
-          
         )}
 
         <Text style={styles.sectionTitle}>Ações Rápidas</Text>
