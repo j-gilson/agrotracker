@@ -6,9 +6,9 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
-  ScrollView,
 } from 'react-native';
 import { useInventario } from '../viewmodels/useInventario';
+import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { router, useFocusEffect } from 'expo-router';
 import { Animal } from '../../domain/entities/Animal';
 import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
@@ -18,15 +18,8 @@ import { formatWeight } from '../../core/utils/formatWeight';
 import { maskUuid } from '../../core/utils/maskUuid';
 
 export const InventarioScreen: React.FC = () => {
-  const {
-    animals,
-    fazendas,
-    selectedFazendaId,
-    setSelectedFazendaId,
-    loading,
-    error,
-    refresh,
-  } = useInventario();
+  const { activeFarmId, activeFarm, loading: farmsLoading } = useActiveFarm();
+  const { animals, loading, error, refresh } = useInventario(activeFarmId);
 
   useFocusEffect(
     useCallback(() => {
@@ -35,14 +28,12 @@ export const InventarioScreen: React.FC = () => {
   );
 
   const handleCreateAnimal = () => {
-    if (!selectedFazendaId) {
-      return;
-    }
+    if (!activeFarmId) return;
 
     router.push({
       pathname: AppRoutes.CREATE_ANIMAL,
       params: {
-        fazendaId: selectedFazendaId,
+        fazendaId: activeFarmId,
       },
     });
   };
@@ -78,69 +69,37 @@ export const InventarioScreen: React.FC = () => {
   const renderEmpty = () => (
     <EmptyState
       subtitle={
-        selectedFazendaId
+        activeFarmId
           ? 'Cadastre um animal nesta fazenda para preencher o inventário.'
           : 'Escolha uma fazenda para visualizar o rebanho correspondente.'
       }
       title={
-        selectedFazendaId
+        activeFarmId
           ? 'Nenhum animal cadastrado nesta fazenda.'
           : 'Selecione uma fazenda para ver o inventário.'
       }
     />
   );
 
+  if (farmsLoading) {
+    return <Loading text="Carregando..." />;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Inventário</Text>
-        <Text style={styles.subtitle}>Listagem completa do rebanho</Text>
-      </View>
-
-      <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Filtrar por Fazenda:</Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.fazendaList}
-        >
-          {fazendas.map((f) => (
-            <Card
-              key={f.id}
-              onPress={() => setSelectedFazendaId(f.id || null)}
-              padding={0}
-              shadow={false}
-              style={[
-                styles.fazendaChip,
-                selectedFazendaId === f.id &&
-                  styles.fazendaChipSelected,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.fazendaChipText,
-                  selectedFazendaId === f.id &&
-                    styles.fazendaChipTextSelected,
-                ]}
-              >
-                {f.nome}
-              </Text>
-            </Card>
-          ))}
-        </ScrollView>
+        <Text style={styles.subtitle}>
+          {activeFarm
+            ? `Rebanho de ${activeFarm.nome}`
+            : 'Listagem completa do rebanho'}
+        </Text>
       </View>
 
       {loading && animals.length === 0 ? (
-        <Loading
-          text="Carregando inventário..."
-          variant="list"
-        />
+        <Loading text="Carregando inventário..." variant="list" />
       ) : error ? (
-        <ErrorState
-          message={error}
-          onRetry={refresh}
-        />
+        <ErrorState message={error} onRetry={refresh} />
       ) : (
         <FlatList
           data={animals}
@@ -162,13 +121,13 @@ export const InventarioScreen: React.FC = () => {
 
       <Button
         onPress={handleCreateAnimal}
-        disabled={!selectedFazendaId}
+        disabled={!activeFarmId}
         style={[
           styles.fab,
-          !selectedFazendaId && styles.fabDisabled,
+          !activeFarmId && styles.fabDisabled,
         ]}
         title={
-          selectedFazendaId
+          activeFarmId
             ? 'Novo Animal'
             : 'Selecione Fazenda'
         }
@@ -197,49 +156,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.textSecondary,
-  },
-
-  filterContainer: {
-    paddingBottom: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderSubtle,
-  },
-
-  filterLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-    marginLeft: theme.spacing.lg,
-    marginBottom: theme.spacing.xs,
-  },
-
-  fazendaList: {
-    paddingLeft: theme.spacing.lg,
-  },
-
-  fazendaChip: {
-    minHeight: 0,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.pill,
-    backgroundColor: theme.colors.backgroundMuted,
-    marginRight: theme.spacing.sm - 2,
-    borderWidth: 1,
-    borderColor: theme.colors.borderSoft,
-  },
-
-  fazendaChipSelected: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-
-  fazendaChipText: {
-    color: theme.colors.textSecondary,
-    fontWeight: theme.typography.fontWeight.semibold,
-  },
-
-  fazendaChipTextSelected: {
-    color: theme.colors.textInverse,
   },
 
   listContent: {

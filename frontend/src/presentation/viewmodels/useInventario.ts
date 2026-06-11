@@ -1,16 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Animal } from '../../domain/entities/Animal';
-import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
 import { GetAnimals } from '../../domain/usecases/animal/GetAnimals';
-import { GetFazendas } from '../../domain/fazenda/usecases/GetFazendas';
 import { AnimalRepositoryImpl } from '../../data/repositories/AnimalRepositoryImpl';
-import { FazendaRepositoryImpl } from '../../data/fazenda/repositories/FazendaRepositoryImpl';
 import { humanizeError } from '../../core/utils/humanizeError';
 
-export const useInventario = () => {
+export const useInventario = (activeFarmId: string | null) => {
   const [animals, setAnimals] = useState<Animal[]>([]);
-  const [fazendas, setFazendas] = useState<Fazenda[]>([]);
-  const [selectedFazendaId, setSelectedFazendaId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,30 +14,8 @@ export const useInventario = () => {
     return new GetAnimals(repository);
   }, []);
 
-  const getFazendasUseCase = useMemo(() => {
-    const repository = new FazendaRepositoryImpl();
-    return new GetFazendas(repository);
-  }, []);
-
-  const fetchFazendas = useCallback(async () => {
-    try {
-      const result = await getFazendasUseCase.execute();
-      setFazendas(result);
-      if (result.length > 0 && !selectedFazendaId) {
-        setSelectedFazendaId(result[0].id || null);
-      }
-    } catch (err: unknown) {
-      setError(
-        humanizeError(
-          err,
-          'Nao foi possivel carregar as fazendas do inventario.'
-        )
-      );
-    }
-  }, [getFazendasUseCase, selectedFazendaId]);
-
   const fetchAnimals = useCallback(async () => {
-    if (!selectedFazendaId) {
+    if (!activeFarmId) {
       setAnimals([]);
       setLoading(false);
       return;
@@ -51,7 +24,7 @@ export const useInventario = () => {
     try {
       setLoading(true);
       setError(null);
-      const result = await getAnimalsUseCase.execute(selectedFazendaId);
+      const result = await getAnimalsUseCase.execute(activeFarmId);
       setAnimals(result);
     } catch (err: unknown) {
       setError(
@@ -63,11 +36,7 @@ export const useInventario = () => {
     } finally {
       setLoading(false);
     }
-  }, [getAnimalsUseCase, selectedFazendaId]);
-
-  useEffect(() => {
-    fetchFazendas();
-  }, [fetchFazendas]);
+  }, [getAnimalsUseCase, activeFarmId]);
 
   useEffect(() => {
     fetchAnimals();
@@ -75,9 +44,6 @@ export const useInventario = () => {
 
   return {
     animals,
-    fazendas,
-    selectedFazendaId,
-    setSelectedFazendaId,
     loading,
     error,
     refresh: fetchAnimals,

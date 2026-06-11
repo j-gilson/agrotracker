@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { AppRoutes } from '../src/core/routes/AppRoutes';
 import { SnackbarProvider, Loading } from '../src/presentation/components';
 import { AuthProvider, useAuthSession } from '../src/presentation/contexts/AuthContext';
+import { ActiveFarmProvider } from '../src/presentation/contexts/ActiveFarmContext';
 
 const queryClient = new QueryClient();
 
@@ -38,11 +39,13 @@ export default function Layout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SnackbarProvider>
-          <AuthGate>
-            <Stack />
-          </AuthGate>
-        </SnackbarProvider>
+        <ActiveFarmProvider>
+          <SnackbarProvider>
+            <AuthGate>
+              <Stack />
+            </AuthGate>
+          </SnackbarProvider>
+        </ActiveFarmProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

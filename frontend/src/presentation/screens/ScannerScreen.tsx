@@ -15,6 +15,7 @@ import {
   Loading,
 } from '../components';
 import { useScanner } from '../viewmodels/useScanner';
+import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { theme } from '../../core/theme';
 
 const { colors, radius, spacing, typography } = theme;
@@ -24,25 +25,26 @@ export function ScannerScreen() {
   const params = useLocalSearchParams<{
     fazendaId?: string | string[];
   }>();
-  const initialFazendaId = Array.isArray(params.fazendaId)
+  const routeFazendaId = Array.isArray(params.fazendaId)
     ? params.fazendaId[0] ?? ''
     : params.fazendaId ?? '';
+
+  const { farms, activeFarmId, loading: farmsLoading } = useActiveFarm();
+  const fazendaId = routeFazendaId || activeFarmId || null;
+
   const hasFocusedOnce = useRef(false);
   const {
     hasPermission,
     requestPermission,
     status,
     codigoIdentificacao,
-    fazendas,
-    selectedFazendaId,
-    setSelectedFazendaId,
     error,
     isFlashlightOn,
     toggleFlashlight,
     handleBarCodeScanned,
     resetScanner,
     openAnimalRegistration,
-  } = useScanner(initialFazendaId);
+  } = useScanner(fazendaId);
 
   useFocusEffect(
     useCallback(() => {
@@ -72,11 +74,33 @@ export function ScannerScreen() {
     );
   }
 
-  const hasFazendas = fazendas.length > 0;
-  const canScan =
-    hasFazendas &&
-    Boolean(selectedFazendaId) &&
-    status === 'aguardando';
+  if (farmsLoading) {
+    return <Loading text="Carregando..." />;
+  }
+
+  if (!fazendaId) {
+    const noFarms = farms.length === 0;
+    return (
+      <View style={styles.centered}>
+        <EmptyState
+          title={
+            noFarms
+              ? 'Nenhuma fazenda disponível'
+              : 'Nenhuma fazenda selecionada'
+          }
+          subtitle={
+            noFarms
+              ? 'É necessário ter acesso a uma fazenda antes de consultar animais pelo scanner.'
+              : 'Selecione uma fazenda na tela inicial para começar a escanear.'
+          }
+          buttonText="Voltar"
+          onPress={() => router.back()}
+        />
+      </View>
+    );
+  }
+
+  const canScan = status === 'aguardando';
 
   return (
     <ScrollView
@@ -94,132 +118,79 @@ export function ScannerScreen() {
           title={isFlashlightOn ? 'Desligar flash' : 'Ligar flash'}
           variant="secondary"
           onPress={toggleFlashlight}
-          disabled={!hasFazendas}
         />
       </View>
 
-      {!hasFazendas ? (
-        <Card style={styles.emptyCard}>
-          <EmptyState
-            title="Nenhuma fazenda disponível"
-            subtitle="É necessário ter acesso a uma fazenda antes de consultar animais pelo scanner."
-            buttonText="Voltar"
-            onPress={() => router.back()}
-          />
-        </Card>
-      ) : (
-        <>
-          <Card>
-            <Text style={styles.sectionTitle}>Fazenda atual</Text>
-            <Text style={styles.sectionHint}>
-              Selecione explicitamente onde o animal será consultado.
+      <View style={styles.cameraContainer}>
+        <CameraView
+          style={styles.camera}
+          facing="back"
+          enableTorch={isFlashlightOn}
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={canScan ? handleBarCodeScanned : undefined}
+        />
+        <View style={styles.overlay}>
+          <View style={styles.scanFrame} />
+        </View>
+      </View>
+
+      {status === 'aguardando' ? (
+        <Card>
+          <View style={styles.inlineMessage}>
+            <Ionicons
+              name="qr-code-outline"
+              size={24}
+              color={colors.primary}
+            />
+            <Text style={styles.messageText}>
+              Posicione o QR Code dentro da área indicada.
             </Text>
-            <View style={styles.farmList}>
-              {fazendas.map((fazenda) => {
-                const fazendaId = fazenda.id;
-                if (!fazendaId) return null;
-
-                const selected = selectedFazendaId === fazendaId;
-
-                return (
-                  <Button
-                    key={fazendaId}
-                    title={fazenda.nome}
-                    variant={selected ? 'primary' : 'secondary'}
-                    onPress={() => setSelectedFazendaId(fazendaId)}
-                  />
-                );
-              })}
-            </View>
-          </Card>
-
-          <View style={styles.cameraContainer}>
-            <CameraView
-              style={styles.camera}
-              facing="back"
-              enableTorch={isFlashlightOn}
-              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-              onBarcodeScanned={canScan ? handleBarCodeScanned : undefined}
-            />
-            <View style={styles.overlay}>
-              <View style={styles.scanFrame} />
-            </View>
           </View>
+        </Card>
+      ) : null}
 
-          {!selectedFazendaId && status === 'aguardando' ? (
-            <Card>
-              <View style={styles.inlineMessage}>
-                <Ionicons
-                  name="business-outline"
-                  size={24}
-                  color={colors.primary}
-                />
-                <Text style={styles.messageText}>
-                  Selecione uma fazenda para iniciar a leitura.
-                </Text>
-              </View>
-            </Card>
-          ) : null}
+      {status === 'consultando' ? (
+        <Loading text="Consultando animal..." />
+      ) : null}
 
-          {selectedFazendaId && status === 'aguardando' ? (
-            <Card>
-              <View style={styles.inlineMessage}>
-                <Ionicons
-                  name="qr-code-outline"
-                  size={24}
-                  color={colors.primary}
-                />
-                <Text style={styles.messageText}>
-                  Posicione o QR Code dentro da área indicada.
-                </Text>
-              </View>
-            </Card>
-          ) : null}
+      {status === 'encontrado' ? (
+        <Loading text="Animal encontrado. Abrindo ficha..." />
+      ) : null}
 
-          {status === 'consultando' ? (
-            <Loading text="Consultando animal..." />
-          ) : null}
-
-          {status === 'encontrado' ? (
-            <Loading text="Animal encontrado. Abrindo ficha..." />
-          ) : null}
-
-          {status === 'naoEncontrado' ? (
-            <Card>
-              <View style={styles.result}>
-                <Ionicons
-                  name="alert-circle-outline"
-                  size={40}
-                  color={colors.warning}
-                />
-                <Text style={styles.resultTitle}>Animal não cadastrado</Text>
-                <Text style={styles.resultText}>
-                  Código lido: {codigoIdentificacao}
-                </Text>
-                <Button
-                  title="Cadastrar Animal"
-                  onPress={openAnimalRegistration}
-                  fullWidth
-                />
-                <Button
-                  title="Escanear novamente"
-                  variant="secondary"
-                  onPress={resetScanner}
-                  fullWidth
-                />
-              </View>
-            </Card>
-          ) : null}
-
-          {status === 'erro' ? (
-            <ErrorState
-              message={error ?? 'Não foi possível consultar o animal.'}
-              retryText="Escanear novamente"
-              onRetry={resetScanner}
+      {status === 'naoEncontrado' ? (
+        <Card>
+          <View style={styles.result}>
+            <Ionicons
+              name="alert-circle-outline"
+              size={40}
+              color={colors.warning}
             />
-          ) : null}
-        </>
-      )}
+            <Text style={styles.resultTitle}>Animal não cadastrado</Text>
+            <Text style={styles.resultText}>
+              Código lido: {codigoIdentificacao}
+            </Text>
+            <Button
+              title="Cadastrar Animal"
+              onPress={openAnimalRegistration}
+              fullWidth
+            />
+            <Button
+              title="Escanear novamente"
+              variant="secondary"
+              onPress={resetScanner}
+              fullWidth
+            />
+          </View>
+        </Card>
+      ) : null}
+
+      {status === 'erro' ? (
+        <ErrorState
+          message={error ?? 'Não foi possível consultar o animal.'}
+          retryText="Escanear novamente"
+          onRetry={resetScanner}
+        />
+      ) : null}
     </ScrollView>
   );
 }
@@ -252,20 +223,6 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
     marginTop: spacing.xs,
-  },
-  sectionTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-  },
-  sectionHint: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  farmList: {
-    gap: spacing.sm,
   },
   cameraContainer: {
     minHeight: 380,
@@ -313,9 +270,5 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.md,
     color: colors.textSecondary,
     textAlign: 'center',
-  },
-  emptyCard: {
-    flex: 1,
-    justifyContent: 'center',
   },
 });

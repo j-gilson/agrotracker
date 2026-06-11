@@ -6,6 +6,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
+import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { useCreateFazenda } from '../viewmodels/useCreateFazenda';
 import { router } from 'expo-router';
 import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
@@ -17,6 +18,7 @@ export const CreateFazendaScreen: React.FC = () => {
   const [localizacao, setLocalizacao] = useState('');
 
   const { createFazenda, createdFazenda, loading, error, success, resetState } = useCreateFazenda();
+  const { refreshFarms, setActiveFarm } = useActiveFarm();
   const { showSnackbar } = useSnackbar();
   const nomeError =
     nome.length > 0 && nome.trim().length < 3
@@ -35,6 +37,14 @@ export const CreateFazendaScreen: React.FC = () => {
   useEffect(() => {
     if (!success) return;
 
+    if (createdFazenda?.id) {
+      const afterCreate = async () => {
+        await refreshFarms();
+        await setActiveFarm(createdFazenda.id!);
+      };
+      afterCreate();
+    }
+
     showSnackbar({
       message: createdFazenda
         ? `Fazenda ${createdFazenda.nome} cadastrada com sucesso.`
@@ -43,7 +53,7 @@ export const CreateFazendaScreen: React.FC = () => {
     });
     resetState();
     router.replace({ pathname: AppRoutes.FAZENDAS });
-  }, [createdFazenda, resetState, showSnackbar, success]);
+  }, [createdFazenda, refreshFarms, resetState, setActiveFarm, showSnackbar, success]);
   
   const handleCreate = async () => {
     if (loading || !isFormValid) {

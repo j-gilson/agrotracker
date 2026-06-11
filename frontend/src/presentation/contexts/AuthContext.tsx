@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AuthRepositoryImpl } from '../../data/repositories/AuthRepositoryImpl';
 import { sessionStore } from '../../core/auth/SessionStore';
+import { activeFarmStore } from '../../core/storage/ActiveFarmStore';
 import { AuthSession } from '../../domain/entities/AuthSession';
 import { AuthUser } from '../../domain/entities/AuthUser';
 import { GetCurrentUser } from '../../domain/usecases/auth/GetCurrentUser';
@@ -90,7 +91,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   );
 
   const logout = useCallback(async () => {
-    await sessionStore.clear();
+    await Promise.all([
+      sessionStore.clear(),
+      activeFarmStore.clear(),
+    ]);
     setSession(null);
     setStatus('unauthenticated');
   }, []);

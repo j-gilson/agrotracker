@@ -5,22 +5,33 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { useHome } from '../viewmodels/useHome';
+import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { router } from 'expo-router';
 import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 
 export const HomeScreen: React.FC = () => {
-  const { stats, loading, error, refresh } = useHome();
+  const {
+    activeFarmId,
+    farms,
+    loading: farmsLoading,
+    setActiveFarm,
+  } = useActiveFarm();
+  const { stats, loading: statsLoading, error, refresh } = useHome(activeFarmId);
 
   const handleScanPress = () => {
-    router.push(AppRoutes.SCANNER_WITH_FAZENDA());
+    router.push(AppRoutes.SCANNER_WITH_FAZENDA(activeFarmId));
   };
 
   const handleInventarioPress = () => {
-    router.push({ pathname: AppRoutes.INVENTARIO });
+    router.push({
+      pathname: AppRoutes.INVENTARIO,
+      params: activeFarmId ? { fazendaId: activeFarmId } : {},
+    });
   };
 
   const handleNovaFazendaPress = () => {
@@ -34,15 +45,46 @@ export const HomeScreen: React.FC = () => {
     </Card>
   );
 
-  const QuickActionCard = ({ label, onPress, icon }: { label: string; onPress: () => void; icon: string }) => (
+  const QuickActionCard = ({
+    label,
+    onPress,
+    icon,
+  }: {
+    label: string;
+    onPress: () => void;
+    icon: string;
+  }) => (
     <Card marginBottom={0} onPress={onPress} padding={20} style={styles.quickActionCard}>
       <Text style={styles.quickActionIcon}>{icon}</Text>
       <Text style={styles.quickActionLabel}>{label}</Text>
     </Card>
   );
 
-  if (loading && !stats.fazendas && !stats.animais) {
-    return <Loading text="Carregando painel..." />;
+  if (farmsLoading) {
+    return <Loading text="Carregando..." />;
+  }
+
+  if (farms.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Bem-vindo!</Text>
+            <Text style={styles.subtitle}>
+              Comece cadastrando sua primeira fazenda.
+            </Text>
+          </View>
+          <Card shadow={false}>
+            <EmptyState
+              title="Nenhuma fazenda cadastrada"
+              subtitle="Cadastre sua primeira fazenda para visualizar indicadores reais do sistema."
+              buttonText="Cadastrar fazenda"
+              onPress={handleNovaFazendaPress}
+            />
+          </Card>
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -50,15 +92,56 @@ export const HomeScreen: React.FC = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refresh} colors={[theme.colors.primary]} />
+          <RefreshControl
+            refreshing={statsLoading}
+            onRefresh={refresh}
+            colors={[theme.colors.primary]}
+          />
         }
       >
         <View style={styles.header}>
           <Text style={styles.title}>Olá!</Text>
-          <Text style={styles.subtitle}>Gerencie seu rebanho com facilidade.</Text>
+          <Text style={styles.subtitle}>
+            Gerencie seu rebanho com facilidade.
+          </Text>
         </View>
 
-        <Button 
+        <View style={styles.farmSelectorSection}>
+          <Text style={styles.farmSelectorLabel}>Fazenda Ativa</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.farmChipsContainer}
+          >
+            {farms.map((farm, index) => {
+              const isActive = farm.id === activeFarmId;
+              return (
+                <TouchableOpacity
+                  key={farm.id ?? `farm-${index}`}
+                  onPress={() => {
+                    if (farm.id) setActiveFarm(farm.id);
+                  }}
+                  style={[
+                    styles.farmChip,
+                    isActive && styles.farmChipActive,
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.farmChipText,
+                      isActive && styles.farmChipTextActive,
+                    ]}
+                  >
+                    {farm.nome}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        <Button
           fullWidth
           icon={<Text style={styles.scanButtonIcon}>📸</Text>}
           style={styles.scanButton}
@@ -68,17 +151,8 @@ export const HomeScreen: React.FC = () => {
 
         {error ? (
           <ErrorState message={error} onRetry={refresh} />
-        ) : stats.fazendas === 0 ? (
-          <Card shadow={false}>
-            <EmptyState
-              title="Nenhuma fazenda cadastrada"
-              subtitle="Cadastre sua primeira fazenda para visualizar indicadores reais do sistema."
-              buttonText="Cadastrar fazenda"
-              onPress={handleNovaFazendaPress}
-            />
-          </Card>
         ) : (
-          <View style={styles.quickActionsRow}>
+          <View style={styles.statsRow}>
             <StatCard label="Animais" value={stats.animais} />
             <StatCard label="Manejos" value={stats.manejos} />
             <StatCard label="Fazendas" value={stats.fazendas} />
@@ -87,19 +161,19 @@ export const HomeScreen: React.FC = () => {
 
         <Text style={styles.sectionTitle}>Ações Rápidas</Text>
         <View style={styles.quickActionsRow}>
-          <QuickActionCard 
-            label="Inventário" 
+          <QuickActionCard
+            label="Inventário"
             onPress={handleInventarioPress}
             icon="📋"
           />
-          <QuickActionCard 
-            label="Nova Fazenda" 
+          <QuickActionCard
+            label="Nova Fazenda"
             onPress={handleNovaFazendaPress}
             icon="🚜"
           />
         </View>
 
-        <Button 
+        <Button
           fullWidth
           onPress={() => router.push({ pathname: AppRoutes.FAZENDAS })}
           style={styles.secondaryButton}
@@ -132,11 +206,49 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.xxs,
   },
+  farmSelectorSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  farmSelectorLabel: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.sm,
+  },
+  farmChipsContainer: {
+    gap: theme.spacing.sm,
+  },
+  farmChip: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.backgroundMuted,
+    marginRight: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.borderSoft,
+  },
+  farmChipActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  farmChipText: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textSecondary,
+  },
+  farmChipTextActive: {
+    color: theme.colors.textInverse,
+  },
   scanButton: {
     marginBottom: theme.spacing.xl,
   },
   scanButtonIcon: {
     fontSize: theme.sizes.iconSm,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.lg,
   },
   statCard: {
     flex: 1,
