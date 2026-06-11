@@ -12,9 +12,6 @@ import { GetCurrentUser } from "../../auth/application/usecases/GetCurrentUser";
 import { makeEnsureAuthenticated } from "../../auth/presentation/middlewares/makeEnsureAuthenticated";
 import { makeEnsureFazendaMember } from "../../membership/presentation/middlewares/makeEnsureFazendaMember";
 import { makeEnsureRole } from "../../membership/presentation/middlewares/makeEnsureRole";
-import { FazendaRepository } from "../../fazenda/infra/repositories/FazendaRepository";
-import { LocalAuditRepository } from "../../audit/infrastructure/LocalAuditRepository";
-import { CreateAuditLog } from "../../audit/application/usecases/CreateAuditLog";
 
 const eventRoutes = Router();
 
@@ -26,16 +23,10 @@ const createEvent = new CreateEvent(eventRepository, animalRepository, memberRep
 const getEventsByAnimal = new GetEventsByAnimal(eventRepository, animalRepository, memberRepository);
 const getEventsByFazenda = new GetEventsByFazenda(eventRepository, memberRepository);
 
-const fazendaRepository = new FazendaRepository();
-const auditRepository = new LocalAuditRepository();
-const createAuditLog = new CreateAuditLog(auditRepository);
-
 const controller = new EventController(
   createEvent,
   getEventsByAnimal,
-  getEventsByFazenda,
-  fazendaRepository,
-  createAuditLog
+  getEventsByFazenda
 );
 
 const userRepository = new LocalUserRepository();

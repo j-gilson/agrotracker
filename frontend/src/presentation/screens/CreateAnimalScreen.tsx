@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -12,21 +12,22 @@ import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 
+const getParam = (value: string | string[] | undefined): string =>
+  typeof value === 'string' ? value : Array.isArray(value) ? value[0] ?? '' : '';
+
 export const CreateAnimalScreen: React.FC = () => {
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<{
+    fazendaId?: string | string[];
+    codigoIdentificacao?: string | string[];
+  }>();
+  const fazendaId = getParam(params.fazendaId);
+  const codigoInicial = getParam(params.codigoIdentificacao);
 
-  // ✅ leitura segura do parâmetro vindo da rota
-  const fazendaId =
-    typeof params.fazendaId === 'string'
-      ? params.fazendaId
-      : Array.isArray(params.fazendaId)
-      ? params.fazendaId[0]
-      : undefined;
-
+  const [codigoIdentificacao, setCodigoIdentificacao] = useState(codigoInicial);
   const [nome, setNome] = useState('');
   const [raca, setRaca] = useState('');
-  const [idade, setIdade] = useState('');
   const [peso, setPeso] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
 
   const {
     createAnimal,
@@ -36,83 +37,72 @@ export const CreateAnimalScreen: React.FC = () => {
     success,
     resetState,
   } = useCreateAnimal();
-
   const { showSnackbar } = useSnackbar();
 
-  const nomeError =
-    nome.length > 0 && nome.trim().length < 2
-      ? 'Informe um nome válido.'
-      : undefined;
+  const parsedBirthDate = useMemo(() => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) return null;
+    const date = new Date(`${dataNascimento}T12:00:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }, [dataNascimento]);
 
+  const codigoError =
+    codigoIdentificacao.length > 0 && !codigoIdentificacao.trim()
+      ? 'Informe o código de identificação.'
+      : undefined;
   const racaError =
     raca.length > 0 && raca.trim().length < 2
       ? 'Informe a raça do animal.'
       : undefined;
-
-  const idadeError =
-    idade.length > 0 &&
-    (Number.isNaN(Number(idade)) || Number(idade) < 0)
-      ? 'Digite uma idade válida.'
-      : undefined;
-
   const pesoError =
-    peso.length > 0 &&
-    (Number.isNaN(Number(peso)) || Number(peso) <= 0)
+    peso.length > 0 && (Number.isNaN(Number(peso)) || Number(peso) <= 0)
       ? 'Digite um peso maior que zero.'
+      : undefined;
+  const dataNascimentoError =
+    dataNascimento.length > 0 &&
+    (!parsedBirthDate || parsedBirthDate.getTime() > Date.now())
+      ? 'Use uma data válida no formato AAAA-MM-DD.'
       : undefined;
 
   const isFormValid =
     !!fazendaId &&
-    nome.trim().length >= 2 &&
+    codigoIdentificacao.trim().length > 0 &&
     raca.trim().length >= 2 &&
-    idade.trim().length > 0 &&
     peso.trim().length > 0 &&
-    !nomeError &&
+    !!parsedBirthDate &&
+    !codigoError &&
     !racaError &&
-    !idadeError &&
-    !pesoError;
+    !pesoError &&
+    !dataNascimentoError;
 
   useEffect(() => {
     if (!success) return;
 
     showSnackbar({
-      message: createdAnimal
-        ? `${createdAnimal.nome} cadastrado com sucesso.`
-        : 'Animal cadastrado com sucesso.',
+      message: `${
+        createdAnimal?.nome || createdAnimal?.codigoIdentificacao || 'Animal'
+      } cadastrado com sucesso.`,
       variant: 'success',
     });
-
     resetState();
 
     if (createdAnimal?.id) {
-      router.replace(
-        AppRoutes.ANIMAL_DETAIL(createdAnimal.id)
-      );
+      router.replace(AppRoutes.ANIMAL_DETAIL(createdAnimal.id));
       return;
     }
-
     router.back();
-  }, [
-    success,
-    createdAnimal,
-    resetState,
-    showSnackbar,
-  ]);
+  }, [createdAnimal, resetState, showSnackbar, success]);
 
   const handleCreate = async () => {
-    if (loading || !isFormValid || !fazendaId) return;
+    if (loading || !isFormValid || !parsedBirthDate) return;
 
     await createAnimal({
-      nome: nome.trim(),
-      raca: raca.trim(),
-      idade: Number(idade),
-      peso: Number(peso),
       fazendaId,
+      codigoIdentificacao: codigoIdentificacao.trim(),
+      nome: nome.trim() || undefined,
+      raca: raca.trim(),
+      peso: Number(peso),
+      dataNascimento: parsedBirthDate,
     });
-  };
-
-  const handleBackToInventario = () => {
-    router.replace(AppRoutes.INVENTARIO);
   };
 
   return (
@@ -120,19 +110,26 @@ export const CreateAnimalScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>Novo Animal</Text>
-          <Text style={styles.subtitle}>
-            Preencha os dados para o cadastro
-          </Text>
+          <Text style={styles.subtitle}>Preencha os dados para o cadastro</Text>
         </View>
 
         <Card padding={20} shadow style={styles.form}>
           <Input
-            label="Nome do Animal"
+            autoCapitalize="characters"
+            error={codigoError}
+            label="Código de Identificação"
+            onChangeText={setCodigoIdentificacao}
+            placeholder="Ex: BRINCO-001"
+            returnKeyType="next"
+            value={codigoIdentificacao}
+          />
+
+          <Input
+            label="Nome (opcional)"
             placeholder="Ex: Mimosa"
             value={nome}
             onChangeText={setNome}
             returnKeyType="next"
-            error={nomeError}
           />
 
           <Input
@@ -147,13 +144,12 @@ export const CreateAnimalScreen: React.FC = () => {
           <View style={styles.row}>
             <View style={[styles.flexItem, styles.marginRight]}>
               <Input
-                label="Idade (anos)"
-                placeholder="Ex: 3"
-                value={idade}
-                onChangeText={setIdade}
-                keyboardType="numeric"
+                label="Nascimento"
+                placeholder="AAAA-MM-DD"
+                value={dataNascimento}
+                onChangeText={setDataNascimento}
                 returnKeyType="next"
-                error={idadeError}
+                error={dataNascimentoError}
               />
             </View>
 
@@ -163,7 +159,7 @@ export const CreateAnimalScreen: React.FC = () => {
                 placeholder="Ex: 450"
                 value={peso}
                 onChangeText={setPeso}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
                 returnKeyType="done"
                 onSubmitEditing={handleCreate}
                 error={pesoError}
@@ -171,23 +167,20 @@ export const CreateAnimalScreen: React.FC = () => {
             </View>
           </View>
 
-          {!fazendaId && (
+          {!fazendaId ? (
             <>
               <ErrorState message="Parâmetro obrigatório não informado: fazendaId." />
-
               <Button
                 fullWidth
                 variant="secondary"
                 title="Voltar e Selecionar Fazenda"
-                onPress={handleBackToInventario}
+                onPress={() => router.replace(AppRoutes.INVENTARIO)}
                 style={styles.backButton}
               />
             </>
-          )}
-
-          {error ? (
-            <ErrorState message={error} />
           ) : null}
+
+          {error ? <ErrorState message={error} /> : null}
 
           <Button
             fullWidth
@@ -207,43 +200,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
   },
-
   scrollContainer: {
     padding: theme.spacing.lg,
   },
-
   header: {
     marginBottom: theme.spacing.xl + theme.spacing.xs,
   },
-
   title: {
     fontSize: theme.typography.fontSize.display,
     fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.primary,
   },
-
   subtitle: {
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.xs - 3,
   },
-
   form: {
     elevation: 4,
   },
-
   row: {
     flexDirection: 'row',
   },
-
   flexItem: {
     flex: 1,
   },
-
   marginRight: {
     marginRight: theme.spacing.sm - 2,
   },
-
   backButton: {
     marginBottom: theme.spacing.md,
   },

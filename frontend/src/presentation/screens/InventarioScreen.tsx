@@ -57,9 +57,14 @@ export const InventarioScreen: React.FC = () => {
       marginBottom={12}
     >
       <View style={styles.animalInfo}>
-        <Text style={styles.animalName}>{item.nome}</Text>
+        <Text style={styles.animalName}>
+          {item.nome || item.codigoIdentificacao}
+        </Text>
         <Text style={styles.animalDetails}>
           {item.raca} • {formatWeight(item.peso)}
+        </Text>
+        <Text style={styles.animalCode}>
+          {item.codigoIdentificacao} • {item.status}
         </Text>
       </View>
 
@@ -263,6 +268,11 @@ const styles = StyleSheet.create({
   animalDetails: {
     fontSize: theme.typography.fontSize.sm,
     color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  animalCode: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.textMuted,
     marginTop: 2,
   },
 

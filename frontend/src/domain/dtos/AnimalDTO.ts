@@ -1,11 +1,29 @@
+import { StatusAnimal } from '../entities/Animal';
+
 export interface CreateAnimalDTO {
-  nome: string;
-  raca: string;
-  idade: number;
-  peso: number;
   fazendaId: string;
+  codigoIdentificacao: string;
+  nome?: string;
+  raca: string;
+  peso: number;
+  dataNascimento: Date;
 }
 
-export interface AnimalDTO extends CreateAnimalDTO {
+export interface UpdateAnimalDTO {
+  nome?: string | null;
+  raca?: string;
+  peso?: number;
+  status?: StatusAnimal;
+}
+
+export interface AnimalDTO {
   id: string;
+  fazendaId: string;
+  codigoIdentificacao: string;
+  nome?: string;
+  raca: string;
+  peso: number;
+  dataNascimento: Date;
+  status: StatusAnimal;
+  dataCriacao: Date;
 }

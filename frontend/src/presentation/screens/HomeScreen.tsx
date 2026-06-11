@@ -16,7 +16,7 @@ export const HomeScreen: React.FC = () => {
   const { stats, loading, error, refresh } = useHome();
 
   const handleScanPress = () => {
-    router.push({ pathname: AppRoutes.SCANNER });
+    router.push(AppRoutes.SCANNER_WITH_FAZENDA());
   };
 
   const handleInventarioPress = () => {

@@ -11,8 +11,6 @@ import { LocalFazendaMemberRepository } from "../../../membership/infrastructure
 import { makeEnsureFazendaMember } from "../../../membership/presentation/middlewares/makeEnsureFazendaMember";
 import { makeEnsureRole } from "../../../membership/presentation/middlewares/makeEnsureRole";
 import { AddMemberToFazenda } from "../../../membership/application/usecases/AddMemberToFazenda";
-import { LocalAuditRepository } from "../../../audit/infrastructure/LocalAuditRepository";
-import { CreateAuditLog } from "../../../audit/application/usecases/CreateAuditLog";
 
 const fazendaRoutes = Router();
 
@@ -31,8 +29,6 @@ const memberRepository = new LocalFazendaMemberRepository();
 const ensureFazendaMemberFromParam = makeEnsureFazendaMember(memberRepository, (req) => String(req.params.id ?? ""));
 const ensureAdmin = makeEnsureRole(["ADMIN"]);
 const addMemberToFazenda = new AddMemberToFazenda(memberRepository);
-const auditRepository = new LocalAuditRepository();
-const createAuditLog = new CreateAuditLog(auditRepository);
 
 fazendaRoutes.get("/", ensureAuthenticated, async (req, res) => {
   const currentUser = res.locals.currentUser as { id: string } | undefined;
@@ -69,20 +65,6 @@ fazendaRoutes.post("/", ensureAuthenticated, async (req, res) => {
         userId: currentUser.id,
         role: "ADMIN",
       });
-
-      await createAuditLog.execute({
-        userId: currentUser.id,
-        userName: currentUser.nome,
-        userEmail: currentUser.email,
-        fazendaId: fazenda.id,
-        fazendaNome: fazenda.nome,
-        entityType: "fazenda",
-        entityId: fazenda.id,
-        action: "CREATE",
-        description: `${currentUser.nome} criou a fazenda ${fazenda.nome}.`,
-        before: null,
-        after: { id: fazenda.id, nome: fazenda.nome, localizacao: fazenda.localizacao },
-      });
     }
 
     return res.status(201).json({
@@ -98,28 +80,11 @@ fazendaRoutes.post("/", ensureAuthenticated, async (req, res) => {
 
 fazendaRoutes.put("/:id", ensureAuthenticated, ensureFazendaMemberFromParam, ensureAdmin, async (req, res) => {
   try {
-    const currentUser = res.locals.currentUser as { id: string; nome: string; email: string } | undefined;
     const id = String(req.params.id ?? "");
     const nome = typeof req.body?.nome === "string" ? req.body.nome.trim() : undefined;
     const localizacao = typeof req.body?.localizacao === "string" ? req.body.localizacao.trim() : undefined;
 
-    const { before, after } = await updateFazendaUseCase.execute({ id, nome, localizacao });
-
-    if (after.id && currentUser?.id) {
-      await createAuditLog.execute({
-        userId: currentUser.id,
-        userName: currentUser.nome,
-        userEmail: currentUser.email,
-        fazendaId: after.id,
-        fazendaNome: after.nome,
-        entityType: "fazenda",
-        entityId: after.id,
-        action: "UPDATE",
-        description: `${currentUser.nome} atualizou a fazenda ${after.nome}.`,
-        before: { id: before.id ?? null, nome: before.nome, localizacao: before.localizacao },
-        after: { id: after.id ?? null, nome: after.nome, localizacao: after.localizacao },
-      });
-    }
+    const { after } = await updateFazendaUseCase.execute({ id, nome, localizacao });
 
     return res.status(200).json({
       id: after.id,

@@ -1,148 +1,321 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  Pressable,
-} from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CameraView } from 'expo-camera';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Loading,
+} from '../components';
 import { useScanner } from '../viewmodels/useScanner';
-import { router } from 'expo-router';
-import { Button, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 
-export const ScannerScreen: React.FC = () => {
+const { colors, radius, spacing, typography } = theme;
+
+export function ScannerScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{
+    fazendaId?: string | string[];
+  }>();
+  const initialFazendaId = Array.isArray(params.fazendaId)
+    ? params.fazendaId[0] ?? ''
+    : params.fazendaId ?? '';
+  const hasFocusedOnce = useRef(false);
   const {
     hasPermission,
-    scanned,
+    requestPermission,
+    status,
+    codigoIdentificacao,
+    fazendas,
+    selectedFazendaId,
+    setSelectedFazendaId,
+    error,
     isFlashlightOn,
-    handleBarCodeScanned,
     toggleFlashlight,
+    handleBarCodeScanned,
     resetScanner,
-  } = useScanner();
+    openAnimalRegistration,
+  } = useScanner(initialFazendaId);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasFocusedOnce.current) {
+        hasFocusedOnce.current = true;
+        return;
+      }
+
+      resetScanner();
+    }, [resetScanner]),
+  );
 
   if (hasPermission === null) {
-    return <Loading text="Solicitando permissão para a câmera..." />;
+    return <Loading text="Verificando permissão da câmera..." />;
   }
 
-  if (hasPermission === false) {
+  if (!hasPermission) {
     return (
-      <ErrorState message="Sem acesso à câmera." onRetry={() => router.back()} retryText="Voltar" />
+      <View style={styles.centered}>
+        <EmptyState
+          title="Permissão da câmera necessária"
+          subtitle="Autorize o uso da câmera para ler o QR Code de identificação do animal."
+          buttonText="Permitir acesso"
+          onPress={requestPermission}
+        />
+      </View>
     );
   }
 
+  const hasFazendas = fazendas.length > 0;
+  const canScan =
+    hasFazendas &&
+    Boolean(selectedFazendaId) &&
+    status === 'aguardando';
+
   return (
-    <SafeAreaView style={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>✕</Text>
-        </Pressable>
-        <Text style={styles.title}>Escanear Brinco</Text>
-        <Pressable onPress={toggleFlashlight} style={styles.flashButton}>
-          <Text style={styles.flashButtonText}>{isFlashlightOn ? '🔦 On' : '🔦 Off'}</Text>
-        </Pressable>
+        <View>
+          <Text style={styles.title}>Scanner</Text>
+          <Text style={styles.subtitle}>
+            Leia o código de identificação do animal
+          </Text>
+        </View>
+        <Button
+          title={isFlashlightOn ? 'Desligar flash' : 'Ligar flash'}
+          variant="secondary"
+          onPress={toggleFlashlight}
+          disabled={!hasFazendas}
+        />
       </View>
 
-      <View style={styles.cameraContainer}>
-        <CameraView
-          style={styles.camera}
-          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-          enableTorch={isFlashlightOn}
-        >
-          <View style={styles.overlay}>
-            <View style={styles.scanArea} />
-            <Text style={styles.scanText}>
-              Posicione o QR Code ou Barcode dentro do quadrado
+      {!hasFazendas ? (
+        <Card style={styles.emptyCard}>
+          <EmptyState
+            title="Nenhuma fazenda disponível"
+            subtitle="É necessário ter acesso a uma fazenda antes de consultar animais pelo scanner."
+            buttonText="Voltar"
+            onPress={() => router.back()}
+          />
+        </Card>
+      ) : (
+        <>
+          <Card>
+            <Text style={styles.sectionTitle}>Fazenda atual</Text>
+            <Text style={styles.sectionHint}>
+              Selecione explicitamente onde o animal será consultado.
             </Text>
-          </View>
-        </CameraView>
-      </View>
+            <View style={styles.farmList}>
+              {fazendas.map((fazenda) => {
+                const fazendaId = fazenda.id;
+                if (!fazendaId) return null;
 
-      <View style={styles.footer}>
-        {scanned && (
-          <Button onPress={resetScanner} style={styles.resetButton} title="Escanear Novamente" />
-        )}
-        <Text style={styles.footerHint}>
-          O scanner identifica automaticamente brincos de identificação animal.
-        </Text>
-      </View>
-    </SafeAreaView>
+                const selected = selectedFazendaId === fazendaId;
+
+                return (
+                  <Button
+                    key={fazendaId}
+                    title={fazenda.nome}
+                    variant={selected ? 'primary' : 'secondary'}
+                    onPress={() => setSelectedFazendaId(fazendaId)}
+                  />
+                );
+              })}
+            </View>
+          </Card>
+
+          <View style={styles.cameraContainer}>
+            <CameraView
+              style={styles.camera}
+              facing="back"
+              enableTorch={isFlashlightOn}
+              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+              onBarcodeScanned={canScan ? handleBarCodeScanned : undefined}
+            />
+            <View style={styles.overlay}>
+              <View style={styles.scanFrame} />
+            </View>
+          </View>
+
+          {!selectedFazendaId && status === 'aguardando' ? (
+            <Card>
+              <View style={styles.inlineMessage}>
+                <Ionicons
+                  name="business-outline"
+                  size={24}
+                  color={colors.primary}
+                />
+                <Text style={styles.messageText}>
+                  Selecione uma fazenda para iniciar a leitura.
+                </Text>
+              </View>
+            </Card>
+          ) : null}
+
+          {selectedFazendaId && status === 'aguardando' ? (
+            <Card>
+              <View style={styles.inlineMessage}>
+                <Ionicons
+                  name="qr-code-outline"
+                  size={24}
+                  color={colors.primary}
+                />
+                <Text style={styles.messageText}>
+                  Posicione o QR Code dentro da área indicada.
+                </Text>
+              </View>
+            </Card>
+          ) : null}
+
+          {status === 'consultando' ? (
+            <Loading text="Consultando animal..." />
+          ) : null}
+
+          {status === 'encontrado' ? (
+            <Loading text="Animal encontrado. Abrindo ficha..." />
+          ) : null}
+
+          {status === 'naoEncontrado' ? (
+            <Card>
+              <View style={styles.result}>
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={40}
+                  color={colors.warning}
+                />
+                <Text style={styles.resultTitle}>Animal não cadastrado</Text>
+                <Text style={styles.resultText}>
+                  Código lido: {codigoIdentificacao}
+                </Text>
+                <Button
+                  title="Cadastrar Animal"
+                  onPress={openAnimalRegistration}
+                  fullWidth
+                />
+                <Button
+                  title="Escanear novamente"
+                  variant="secondary"
+                  onPress={resetScanner}
+                  fullWidth
+                />
+              </View>
+            </Card>
+          ) : null}
+
+          {status === 'erro' ? (
+            <ErrorState
+              message={error ?? 'Não foi possível consultar o animal.'}
+              retryText="Escanear novamente"
+              onRetry={resetScanner}
+            />
+          ) : null}
+        </>
+      )}
+    </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
+    padding: spacing.lg,
+    gap: spacing.lg,
+    backgroundColor: colors.background,
+  },
+  centered: {
     flex: 1,
-    backgroundColor: theme.colors.black,
+    justifyContent: 'center',
+    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.overlay,
-    zIndex: 10,
+    gap: spacing.md,
   },
   title: {
-    color: theme.colors.textInverse,
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
+    fontSize: typography.fontSize.display,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
   },
-  closeButton: {
-    padding: theme.spacing.xs,
+  subtitle: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
-  closeButtonText: {
-    color: theme.colors.textInverse,
-    fontSize: theme.typography.fontSize.xxl,
+  sectionTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
   },
-  flashButton: {
-    padding: theme.spacing.xs,
-    backgroundColor: theme.colors.overlaySoft,
-    borderRadius: theme.radius.sm,
+  sectionHint: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
   },
-  flashButtonText: {
-    color: theme.colors.textInverse,
-    fontSize: theme.typography.fontSize.sm,
+  farmList: {
+    gap: spacing.sm,
   },
   cameraContainer: {
-    flex: 1,
+    minHeight: 380,
+    overflow: 'hidden',
+    borderRadius: radius.lg,
+    backgroundColor: colors.black,
   },
   camera: {
     flex: 1,
+    minHeight: 380,
   },
   overlay: {
-    flex: 1,
-    backgroundColor: theme.colors.overlay,
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
     justifyContent: 'center',
+  },
+  scanFrame: {
+    width: 230,
+    height: 230,
+    borderWidth: 3,
+    borderColor: colors.white,
+    borderRadius: radius.md,
+  },
+  inlineMessage: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.md,
   },
-  scanArea: {
-    width: theme.sizes.scanArea,
-    height: theme.sizes.scanArea,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.transparent,
-    borderRadius: theme.radius.md,
+  messageText: {
+    fontSize: typography.fontSize.md,
+    color: colors.textPrimary,
+    flex: 1,
   },
-  scanText: {
-    color: theme.colors.textInverse,
-    marginTop: theme.spacing.xl,
-    textAlign: 'center',
-    paddingHorizontal: theme.spacing.xxxl,
-    fontSize: theme.typography.fontSize.md,
-  },
-  footer: {
-    padding: theme.spacing.xxl,
+  result: {
     alignItems: 'center',
-    backgroundColor: theme.colors.overlay,
+    gap: spacing.md,
   },
-  resetButton: {
-    marginBottom: theme.spacing.md,
-  },
-  footerHint: {
-    color: theme.colors.textMuted,
+  resultTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
     textAlign: 'center',
-    fontSize: theme.typography.fontSize.xs,
+  },
+  resultText: {
+    fontSize: typography.fontSize.md,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  emptyCard: {
+    flex: 1,
+    justifyContent: 'center',
   },
 });

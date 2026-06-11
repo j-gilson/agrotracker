@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "id": "f8b18b4b-3996-4a7c-a90e-37a7087589da",
+    "fazendaId": "b4ce8887-7eb6-4da3-adbf-2ed4019c565a",
+    "codigoIdentificacao": "0001",
+    "nome": "nv",
+    "raca": "nerole",
+    "peso": 500,
+    "dataNascimento": "2023-08-23T15:00:00.000Z",
+    "status": "ATIVO",
+    "dataCriacao": "2026-06-11T02:20:08.884Z"
+  },
+  {
+    "id": "742fc8f8-f244-412a-af63-5e151d23a3a2",
+    "fazendaId": "b4ce8887-7eb6-4da3-adbf-2ed4019c565a",
+    "codigoIdentificacao": "0002",
+    "nome": "Julia",
+    "raca": "Geysi",
+    "peso": 608,
+    "dataNascimento": "2024-09-29T15:00:00.000Z",
+    "status": "ATIVO",
+    "dataCriacao": "2026-06-11T02:41:41.815Z"
+  }
+]

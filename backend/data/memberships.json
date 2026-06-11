@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "93c27182-46f9-4431-8828-78123aa6b80b",
+    "fazendaId": "b4ce8887-7eb6-4da3-adbf-2ed4019c565a",
+    "userId": "3f2760fe-c224-4e4d-bb4b-be3bdf2159fc",
+    "role": "ADMIN",
+    "active": true,
+    "createdAt": "2026-06-11T02:19:06.501Z"
+  }
+]

@@ -3,16 +3,12 @@ import { CreateEvent } from "../application/usecases/CreateEvent";
 import { GetEventsByAnimal } from "../application/usecases/GetEventsByAnimal";
 import { GetEventsByFazenda } from "../application/usecases/GetEventsByFazenda";
 import { EventError } from "../application/errors/EventError";
-import { CreateAuditLog } from "../../audit/application/usecases/CreateAuditLog";
-import { FazendaRepository } from "../../fazenda/infra/repositories/FazendaRepository";
 
 export class EventController {
   constructor(
     private readonly createEvent: CreateEvent,
     private readonly getEventsByAnimal: GetEventsByAnimal,
-    private readonly getEventsByFazenda: GetEventsByFazenda,
-    private readonly fazendaRepository: FazendaRepository,
-    private readonly createAuditLog: CreateAuditLog
+    private readonly getEventsByFazenda: GetEventsByFazenda
   ) {}
 
   async create(req: Request, res: Response): Promise<Response> {
@@ -48,30 +44,6 @@ export class EventController {
         date: parsedDate,
         createdBy: currentUser?.id ?? "",
       });
-
-      if (currentUser) {
-        const fazenda = await this.fazendaRepository.findById(event.fazendaId);
-        await this.createAuditLog.execute({
-          userId: currentUser.id,
-          userName: currentUser.nome,
-          userEmail: currentUser.email,
-          fazendaId: event.fazendaId,
-          fazendaNome: fazenda?.nome ?? null,
-          entityType: "event",
-          entityId: event.id,
-          action: "CREATE",
-          description: `${currentUser.nome} criou um evento ${event.type}.`,
-          before: null,
-          after: {
-            id: event.id,
-            animalId: event.animalId,
-            fazendaId: event.fazendaId,
-            type: event.type,
-            description: event.description,
-            date: event.date.toISOString(),
-          },
-        });
-      }
 
       return res.status(201).json({
         success: true,

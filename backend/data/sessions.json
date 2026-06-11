@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "token": "mock.3f2760fe-c224-4e4d-bb4b-be3bdf2159fc.2a0ea868271e4986ee632c3c13316ba6",
+    "userId": "3f2760fe-c224-4e4d-bb4b-be3bdf2159fc",
+    "createdAt": "2026-06-11T02:18:46.561Z"
+  },
+  {
+    "token": "mock.3f2760fe-c224-4e4d-bb4b-be3bdf2159fc.06f0de57f982afb3859f34d81fa4f6b0",
+    "userId": "3f2760fe-c224-4e4d-bb4b-be3bdf2159fc",
+    "createdAt": "2026-06-11T02:40:06.003Z"
+  }
+]

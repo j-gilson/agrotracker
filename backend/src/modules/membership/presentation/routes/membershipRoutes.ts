@@ -15,9 +15,6 @@ import { GetMembersByFazenda } from "../../application/usecases/GetMembersByFaze
 import { ChangeMemberRole } from "../../application/usecases/ChangeMemberRole";
 import { ToggleMemberActive } from "../../application/usecases/ToggleMemberActive";
 import { RemoveMember } from "../../application/usecases/RemoveMember";
-import { FazendaRepository } from "../../../fazenda/infra/repositories/FazendaRepository";
-import { LocalAuditRepository } from "../../../audit/infrastructure/LocalAuditRepository";
-import { CreateAuditLog } from "../../../audit/application/usecases/CreateAuditLog";
 
 const membershipRoutes = Router();
 
@@ -28,9 +25,6 @@ const ensureAuthenticated = makeEnsureAuthenticated(getCurrentUser);
 
 const memberRepository = new LocalFazendaMemberRepository();
 const inviteRepository = new LocalInviteRepository();
-const fazendaRepository = new FazendaRepository();
-const auditRepository = new LocalAuditRepository();
-const createAuditLog = new CreateAuditLog(auditRepository);
 
 const addMemberToFazenda = new AddMemberToFazenda(memberRepository);
 const inviteUserToFazenda = new InviteUserToFazenda(memberRepository, inviteRepository, userRepository);
@@ -46,9 +40,7 @@ const controller = new MembershipController(
   getMembersByFazenda,
   changeMemberRole,
   toggleMemberActive,
-  removeMember,
-  fazendaRepository,
-  createAuditLog
+  removeMember
 );
 
 const ensureFazendaMemberFromParams = makeEnsureFazendaMember(memberRepository, (req) => String(req.params.id ?? ""));

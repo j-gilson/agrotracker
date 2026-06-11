@@ -4,15 +4,13 @@ import { GetCurrentUser } from "../../application/usecases/GetCurrentUser";
 import { LoginUser } from "../../application/usecases/LoginUser";
 import { LogoutUser } from "../../application/usecases/LogoutUser";
 import { RegisterUser } from "../../application/usecases/RegisterUser";
-import { CreateAuditLog } from "../../../audit/application/usecases/CreateAuditLog";
 
 export class AuthController {
   constructor(
     private readonly registerUser: RegisterUser,
     private readonly loginUser: LoginUser,
     private readonly getCurrentUser: GetCurrentUser,
-    private readonly logoutUser: LogoutUser,
-    private readonly createAuditLog: CreateAuditLog
+    private readonly logoutUser: LogoutUser
   ) {}
 
   async register(req: Request, res: Response): Promise<Response> {
@@ -27,20 +25,6 @@ export class AuthController {
         nome: nome ?? "",
         email: email ?? "",
         senha: senha ?? "",
-      });
-
-      await this.createAuditLog.execute({
-        userId: user.id,
-        userName: user.nome,
-        userEmail: user.email,
-        fazendaId: null,
-        fazendaNome: null,
-        entityType: "auth",
-        entityId: user.id,
-        action: "CREATE",
-        description: `${user.nome} criou uma conta.`,
-        before: null,
-        after: { id: user.id, nome: user.nome, email: user.email },
       });
 
       return res.status(201).json({
@@ -76,20 +60,6 @@ export class AuthController {
       const result = await this.loginUser.execute({
         email: email ?? "",
         senha: senha ?? "",
-      });
-
-      await this.createAuditLog.execute({
-        userId: result.user.id,
-        userName: result.user.nome,
-        userEmail: result.user.email,
-        fazendaId: null,
-        fazendaNome: null,
-        entityType: "auth",
-        entityId: result.user.id,
-        action: "LOGIN",
-        description: `${result.user.nome} realizou login.`,
-        before: null,
-        after: { userId: result.user.id },
       });
 
       return res.status(200).json({
@@ -147,25 +117,8 @@ export class AuthController {
   async logout(req: Request, res: Response): Promise<Response> {
     try {
       const token = res.locals.token as string | undefined;
-      const currentUser = res.locals.currentUser as { id: string; nome: string; email: string } | undefined;
 
       await this.logoutUser.execute(token ?? "");
-
-      if (currentUser) {
-        await this.createAuditLog.execute({
-          userId: currentUser.id,
-          userName: currentUser.nome,
-          userEmail: currentUser.email,
-          fazendaId: null,
-          fazendaNome: null,
-          entityType: "auth",
-          entityId: currentUser.id,
-          action: "LOGOUT",
-          description: `${currentUser.nome} realizou logout.`,
-          before: null,
-          after: null,
-        });
-      }
 
       return res.status(204).send();
     } catch (error: unknown) {

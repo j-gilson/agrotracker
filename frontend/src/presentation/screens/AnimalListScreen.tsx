@@ -33,14 +33,24 @@ export const AnimalListScreen: React.FC = () => {
   }
 
   const renderItem = ({ item }: { item: Animal }) => (
-    <Card marginBottom={12} style={styles.card}>
+    <Card
+      marginBottom={12}
+      onPress={() => router.push(AppRoutes.ANIMAL_DETAIL(item.id))}
+      style={styles.card}
+    >
       <View style={styles.cardHeader}>
-        <Text style={styles.animalName}>{item.nome}</Text>
-        <Text style={styles.animalRaca}>{item.raca}</Text>
+        <View>
+          <Text style={styles.animalName}>
+            {item.nome || item.codigoIdentificacao}
+          </Text>
+          <Text style={styles.animalCode}>{item.codigoIdentificacao}</Text>
+        </View>
+        <Text style={styles.animalStatus}>{item.status}</Text>
       </View>
       <View style={styles.cardContent}>
         <Text style={styles.animalInfo}>Idade: {item.idade} anos</Text>
         <Text style={styles.animalInfo}>Peso: {item.peso} kg</Text>
+        <Text style={styles.animalInfo}>Raça: {item.raca}</Text>
       </View>
     </Card>
   );
@@ -182,8 +192,17 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontStyle: 'italic',
   },
+  animalCode: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.textSecondary,
+  },
+  animalStatus: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.primary,
+    fontWeight: theme.typography.fontWeight.bold,
+  },
   cardContent: {
-    flexDirection: 'row',
+    gap: theme.spacing.xxs,
     justifyContent: 'space-between',
   },
   animalInfo: {

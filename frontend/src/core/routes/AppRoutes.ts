@@ -9,7 +9,18 @@ export const AppRoutes = {
   INVENTARIO: '/inventario' as const,
   MANEJOS: '/manejos' as const,
   SCANNER: '/scanner' as const,
+  SCANNER_WITH_FAZENDA: (fazendaId?: string | null) => ({
+    pathname: '/scanner' as const,
+    params: fazendaId ? { fazendaId } : {},
+  }),
   CREATE_ANIMAL: '/animal/create' as const,
+  CREATE_ANIMAL_WITH_CODE: (
+    fazendaId: string,
+    codigoIdentificacao: string
+  ) => ({
+    pathname: '/animal/create' as const,
+    params: { fazendaId, codigoIdentificacao },
+  }),
   CREATE_EVENT: (animalId: string | number, fazendaId: string) => ({
     pathname: '/animal/[id]/event/create' as const,
     params: { id: animalId, animalId, fazendaId },
@@ -18,18 +29,6 @@ export const AppRoutes = {
   ANIMAL_DETAIL: (id: string | number) => ({
     pathname: '/animal/[id]' as const,
     params: { id },
-  }),
-  AUDIT_ENTITY_TIMELINE: (entityType: string, entityId: string) => ({
-    pathname: '/audit/entity/timeline' as const,
-    params: { entityType, entityId },
-  }),
-  AUDIT_FAZENDA: (fazendaId: string) => ({
-    pathname: '/audit/fazenda' as const,
-    params: { fazendaId },
-  }),
-  AUDIT_USER: (userId: string) => ({
-    pathname: '/audit/user' as const,
-    params: { userId },
   }),
 } as const;
 

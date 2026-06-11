@@ -25,7 +25,12 @@ export const useCreateAnimal = () => {
         setSuccess(false);
         setCreatedAnimal(null);
 
-        const result = await createAnimalUseCase.execute(data);
+        const result = await createAnimalUseCase.execute({
+          ...data,
+          codigoIdentificacao: data.codigoIdentificacao.trim(),
+          nome: data.nome?.trim() || undefined,
+          raca: data.raca.trim(),
+        });
 
         setCreatedAnimal(result);
         setSuccess(true);

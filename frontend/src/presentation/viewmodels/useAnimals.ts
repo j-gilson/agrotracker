@@ -30,7 +30,11 @@ export const useAnimals = (fazendaId: string) => {
       setError(null);
 
       const result = await getAnimalsUseCase.execute(fazendaId);
-      setAnimals(result);
+      setAnimals(
+        [...result].sort((a, b) =>
+          a.codigoIdentificacao.localeCompare(b.codigoIdentificacao)
+        )
+      );
     } catch (err: unknown) {
       setError(
         humanizeError(

@@ -46,6 +46,7 @@ export const useAnimalDetail = (animalId: string) => {
       if (animalResult) {
         setAnimal(animalResult);
       } else {
+        setAnimal(null);
         setError('Animal não encontrado.');
       }
 

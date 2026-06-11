@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "3f2760fe-c224-4e4d-bb4b-be3bdf2159fc",
+    "nome": "gilson",
+    "email": "josegilsonaraujoreboucas@gmail.com",
+    "passwordHash": "$2b$10$iHcBwVQj5KSsnwwSyk1apOaRpEautofubhpBC9xHK2Hf89wEBrF2K",
+    "ativo": true,
+    "roles": [
+      "FUNCIONARIO"
+    ],
+    "createdAt": "2026-06-11T02:18:46.381Z",
+    "updatedAt": "2026-06-11T02:18:46.381Z"
+  }
+]

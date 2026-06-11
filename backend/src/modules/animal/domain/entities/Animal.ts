@@ -1,48 +1,99 @@
+export type StatusAnimal = "ATIVO" | "VENDIDO" | "MORTO";
+
 export interface AnimalProps {
-  id?: string;
-  nome: string;
-  raca: string;
-  idade: number;
-  peso: number;
+  id: string;
   fazendaId: string;
-  dataNascimento?: Date;
+  codigoIdentificacao: string;
+  nome?: string;
+  raca: string;
+  peso: number;
+  dataNascimento: Date;
+  status: StatusAnimal;
+  dataCriacao: Date;
 }
 
-export class Animal {
-  private props: AnimalProps;
+const STATUS_ANIMAL: StatusAnimal[] = ["ATIVO", "VENDIDO", "MORTO"];
 
-  constructor(props: AnimalProps) {
-    this.props = props;
+export class Animal {
+  constructor(private readonly props: AnimalProps) {
     this.validate();
   }
 
-  private validate() {
-  //   if (!this.props.id) {
-  //     throw new Error("ID é obrigatório.");
-  //   }
-
-    if (!this.props.nome || this.props.nome.trim().length === 0) {
-      throw new Error("Nome do animal é obrigatório.");
+  private validate(): void {
+    if (!this.props.id?.trim()) throw new Error("ID do animal e obrigatorio.");
+    if (!this.props.fazendaId?.trim()) throw new Error("Fazenda do animal e obrigatoria.");
+    if (!this.props.codigoIdentificacao?.trim()) {
+      throw new Error("Codigo de identificacao e obrigatorio.");
     }
-
-    if (!this.props.raca || this.props.raca.trim().length === 0) {
-      throw new Error("Raça do animal é obrigatória.");
-    }
-
-    if (this.props.idade < 0) {
-      throw new Error("Idade não pode ser negativa.");
-    }
-
-    if (this.props.peso <= 0) {
+    if (!this.props.raca?.trim()) throw new Error("Raca do animal e obrigatoria.");
+    if (!Number.isFinite(this.props.peso) || this.props.peso <= 0) {
       throw new Error("O peso do animal deve ser maior que zero.");
+    }
+    if (
+      !(this.props.dataNascimento instanceof Date) ||
+      Number.isNaN(this.props.dataNascimento.getTime())
+    ) {
+      throw new Error("Data de nascimento invalida.");
+    }
+    if (this.props.dataNascimento.getTime() > Date.now()) {
+      throw new Error("Data de nascimento nao pode estar no futuro.");
+    }
+    if (!STATUS_ANIMAL.includes(this.props.status)) {
+      throw new Error("Status do animal invalido.");
+    }
+    if (
+      !(this.props.dataCriacao instanceof Date) ||
+      Number.isNaN(this.props.dataCriacao.getTime())
+    ) {
+      throw new Error("Data de criacao invalida.");
     }
   }
 
-  get id(): string | undefined { return this.props.id; }
-  get nome(): string { return this.props.nome; }
-  get raca(): string { return this.props.raca; }
-  get idade(): number { return this.props.idade; }
-  get peso(): number { return this.props.peso; }
-  get dataNascimento(): Date | undefined { return this.props.dataNascimento; }
-  get fazendaId(): string { return this.props.fazendaId || ''; }
+  get id(): string {
+    return this.props.id;
+  }
+
+  get fazendaId(): string {
+    return this.props.fazendaId;
+  }
+
+  get codigoIdentificacao(): string {
+    return this.props.codigoIdentificacao;
+  }
+
+  get nome(): string | undefined {
+    return this.props.nome;
+  }
+
+  get raca(): string {
+    return this.props.raca;
+  }
+
+  get peso(): number {
+    return this.props.peso;
+  }
+
+  get dataNascimento(): Date {
+    return this.props.dataNascimento;
+  }
+
+  get status(): StatusAnimal {
+    return this.props.status;
+  }
+
+  get dataCriacao(): Date {
+    return this.props.dataCriacao;
+  }
+
+  get idade(): number {
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - this.props.dataNascimento.getFullYear();
+    const aniversarioAindaNaoOcorreu =
+      hoje.getMonth() < this.props.dataNascimento.getMonth() ||
+      (hoje.getMonth() === this.props.dataNascimento.getMonth() &&
+        hoje.getDate() < this.props.dataNascimento.getDate());
+
+    if (aniversarioAindaNaoOcorreu) idade -= 1;
+    return Math.max(0, idade);
+  }
 }

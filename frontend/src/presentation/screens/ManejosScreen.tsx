@@ -111,7 +111,13 @@ export const ManejosScreen: React.FC = () => {
         />
       )}
 
-      <Button onPress={() => router.push({ pathname: AppRoutes.SCANNER })} style={styles.fab} title="Novo Manejo" />
+      <Button
+        onPress={() =>
+          router.push(AppRoutes.SCANNER_WITH_FAZENDA(selectedFazendaId))
+        }
+        style={styles.fab}
+        title="Novo Manejo"
+      />
     </SafeAreaView>
   );
 };

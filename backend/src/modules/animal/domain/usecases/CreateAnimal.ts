@@ -7,40 +7,47 @@ export class CreateAnimal {
   constructor(private animalRepository: IAnimalRepository) {}
 
   async execute(data: CreateAnimalDTO): Promise<Animal> {
-    const nome = data.nome?.trim() ?? "";
+    const nome = data.nome?.trim() || undefined;
     const raca = data.raca?.trim() ?? "";
     const fazendaId = data.fazendaId?.trim() ?? "";
-    const idade = Number(data.idade);
+    const codigoIdentificacao = data.codigoIdentificacao?.trim() ?? "";
     const peso = Number(data.peso);
+    const dataNascimento =
+      data.dataNascimento instanceof Date
+        ? data.dataNascimento
+        : new Date(data.dataNascimento);
 
-    if (nome.length < 2) {
-      throw new Error("O nome do animal deve ter pelo menos 2 caracteres.");
-    }
-
-    if (!raca) {
-      throw new Error("A raça do animal é obrigatória.");
-    }
-
-    if (!fazendaId) {
-      throw new Error("A fazenda do animal é obrigatória.");
-    }
-
-    if (!Number.isFinite(idade) || idade < 0) {
-      throw new Error("A idade do animal deve ser um número maior ou igual a zero.");
+    if (!raca) throw new Error("A raca do animal e obrigatoria.");
+    if (!fazendaId) throw new Error("A fazenda do animal e obrigatoria.");
+    if (!codigoIdentificacao) {
+      throw new Error("O codigo de identificacao e obrigatorio.");
     }
 
     if (!Number.isFinite(peso) || peso <= 0) {
       throw new Error("O peso do animal deve ser maior que zero.");
     }
+    if (Number.isNaN(dataNascimento.getTime())) {
+      throw new Error("Data de nascimento invalida.");
+    }
+
+    const existente = await this.animalRepository.findByCodigoIdentificacao(
+      fazendaId,
+      codigoIdentificacao
+    );
+    if (existente) {
+      throw new Error("Ja existe um animal com este codigo nesta fazenda.");
+    }
 
     const animal = new Animal({
       id: uuidv4(),
+      fazendaId,
+      codigoIdentificacao,
       nome,
       raca,
-      idade,
       peso,
-      fazendaId,
-      dataNascimento: data.dataNascimento || new Date(),
+      dataNascimento,
+      status: "ATIVO",
+      dataCriacao: new Date(),
     });
 
     return this.animalRepository.create(animal);

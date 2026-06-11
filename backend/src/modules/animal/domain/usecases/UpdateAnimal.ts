@@ -1,13 +1,12 @@
 import { IAnimalRepository } from "../repositories/IAnimalRepository";
-import { Animal } from "../entities/Animal";
+import { Animal, StatusAnimal } from "../entities/Animal";
 
 export interface UpdateAnimalInput {
   id: string;
-  nome?: string;
+  nome?: string | null;
   raca?: string;
-  idade?: number;
   peso?: number;
-  dataNascimento?: Date;
+  status?: StatusAnimal;
 }
 
 export class UpdateAnimal {
@@ -17,16 +16,8 @@ export class UpdateAnimal {
     const id = input.id?.trim() ?? "";
     if (!id) throw new Error("ID do animal é obrigatório.");
 
-    if (input.nome !== undefined && input.nome.trim().length < 2) {
-      throw new Error("O nome do animal deve ter pelo menos 2 caracteres.");
-    }
-
     if (input.raca !== undefined && !input.raca.trim()) {
-      throw new Error("A raça do animal é obrigatória.");
-    }
-
-    if (input.idade !== undefined && (!Number.isFinite(input.idade) || input.idade < 0)) {
-      throw new Error("A idade do animal deve ser um número maior ou igual a zero.");
+      throw new Error("A raca do animal e obrigatoria.");
     }
 
     if (input.peso !== undefined && (!Number.isFinite(input.peso) || input.peso <= 0)) {
@@ -39,11 +30,16 @@ export class UpdateAnimal {
     const updated = new Animal({
       id: existing.id,
       fazendaId: existing.fazendaId,
-      nome: input.nome !== undefined ? input.nome.trim() : existing.nome,
+      codigoIdentificacao: existing.codigoIdentificacao,
+      nome:
+        input.nome !== undefined
+          ? input.nome?.trim() || undefined
+          : existing.nome,
       raca: input.raca !== undefined ? input.raca.trim() : existing.raca,
-      idade: input.idade !== undefined ? input.idade : existing.idade,
       peso: input.peso !== undefined ? input.peso : existing.peso,
-      dataNascimento: input.dataNascimento !== undefined ? input.dataNascimento : existing.dataNascimento,
+      dataNascimento: existing.dataNascimento,
+      status: input.status ?? existing.status,
+      dataCriacao: existing.dataCriacao,
     });
 
     await this.animalRepository.update(updated);

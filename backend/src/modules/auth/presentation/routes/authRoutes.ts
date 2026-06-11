@@ -9,8 +9,6 @@ import { LocalSessionRepository } from "../../infrastructure/repositories/LocalS
 import { BcryptPasswordHasher } from "../../infrastructure/services/BcryptPasswordHasher";
 import { MockTokenService } from "../../infrastructure/services/MockTokenService";
 import { makeEnsureAuthenticated } from "../middlewares/makeEnsureAuthenticated";
-import { LocalAuditRepository } from "../../../audit/infrastructure/LocalAuditRepository";
-import { CreateAuditLog } from "../../../audit/application/usecases/CreateAuditLog";
 
 const authRoutes = Router();
 
@@ -29,17 +27,13 @@ const loginUser = new LoginUser(
 const getCurrentUser = new GetCurrentUser(sessionRepository, userRepository);
 const logoutUser = new LogoutUser(sessionRepository);
 
-const auditRepository = new LocalAuditRepository();
-const createAuditLog = new CreateAuditLog(auditRepository);
-
 const ensureAuthenticated = makeEnsureAuthenticated(getCurrentUser);
 
 const authController = new AuthController(
   registerUser,
   loginUser,
   getCurrentUser,
-  logoutUser,
-  createAuditLog
+  logoutUser
 );
 
 authRoutes.post("/register", (req, res) => authController.register(req, res));

@@ -63,7 +63,9 @@ export const AnimalDetailScreen: React.FC = () => {
       >
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.title}>{animal?.nome}</Text>
+            <Text style={styles.title}>
+              {animal?.nome || animal?.codigoIdentificacao || 'Animal'}
+            </Text>
             <Text style={styles.subtitle}>Ficha do animal</Text>
           </View>
 
@@ -72,17 +74,7 @@ export const AnimalDetailScreen: React.FC = () => {
           </Pressable>
         </View>
 
-        {animal?.id ? (
-          <Button
-            title="Histórico"
-            variant="secondary"
-            onPress={() => {
-              const route = AppRoutes.AUDIT_ENTITY_TIMELINE('animal', animal.id!);
-              router.push(route as unknown as Href);
-            }}
-            style={styles.auditButton}
-          />
-        ) : null}
+
 
         <View style={styles.tabsRow}>
           <Pressable style={styles.tabActive}>
@@ -94,11 +86,16 @@ export const AnimalDetailScreen: React.FC = () => {
         </View>
 
         <Card marginBottom={24} shadow={false} style={styles.card}>
-          <InfoRow label="ID / QR Code" value={animal?.id} />
+          <InfoRow label="Código de Identificação" value={animal?.codigoIdentificacao} />
+          <InfoRow label="Status" value={animal?.status} />
           <InfoRow label="Raça" value={animal?.raca} />
           <InfoRow label="Peso Atual" value={formatWeight(animal?.peso)} />
-          <InfoRow label="Idade" value={animal?.idade ? `${animal.idade} meses` : '-'} />
+          <InfoRow
+            label="Idade"
+            value={animal ? `${animal.idade} anos` : '-'}
+          />
           <InfoRow label="Nascimento" value={formatDate(animal?.dataNascimento)} />
+          <InfoRow label="Cadastrado em" value={formatDate(animal?.dataCriacao)} />
         </Card>
 
         <Text style={styles.sectionTitle}>Histórico de Manejos</Text>
@@ -165,9 +162,6 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontWeight: theme.typography.fontWeight.semibold,
     fontSize: theme.typography.fontSize.sm,
-  },
-  auditButton: {
-    marginBottom: theme.spacing.lg,
   },
   title: {
     fontSize: theme.typography.fontSize.xxl,
