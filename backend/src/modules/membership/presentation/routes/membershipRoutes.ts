@@ -69,7 +69,7 @@ membershipRoutes.get(
 membershipRoutes.post("/fazendas/:id/invite", ensureAuthenticated, ensureFazendaMemberFromParams, ensureAdmin, (req, res) =>
   controller.invite(req, res)
 );
-membershipRoutes.get("/fazendas/:id/members", ensureAuthenticated, ensureFazendaMemberFromParams, ensureAdmin, (req, res) =>
+membershipRoutes.get("/fazendas/:id/members", ensureAuthenticated, ensureFazendaMemberFromParams, (req, res) =>
   controller.listMembers(req, res)
 );
 membershipRoutes.patch(

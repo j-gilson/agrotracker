@@ -69,6 +69,7 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
 
   const renderItem = ({ item }: { item: FazendaMember }) => {
     const isSelf = currentMember?.userId === item.userId;
+    const canManageMembers = currentMember?.role === 'ADMIN';
     const nextRole: MemberRole = item.role === 'ADMIN' ? 'FUNCIONARIO' : 'ADMIN';
 
     return (
@@ -91,27 +92,29 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
           </View>
         </View>
 
-        <View style={styles.actions}>
-          <Button
-            onPress={() => handleChangeRole(item.id, nextRole)}
-            title={item.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
-            variant="secondary"
-            style={styles.action}
-          />
-          <Button
-            onPress={() => handleToggle(item.id)}
-            title={item.active ? 'Desativar' : 'Ativar'}
-            variant="ghost"
-            style={styles.action}
-          />
-          <Button
-            onPress={() => handleRemove(item.id)}
-            title="Remover"
-            variant="danger"
-            disabled={isSelf}
-            style={styles.action}
-          />
-        </View>
+        {canManageMembers ? (
+          <View style={styles.actions}>
+            <Button
+              onPress={() => handleChangeRole(item.id, nextRole)}
+              title={item.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
+              variant="secondary"
+              style={styles.action}
+            />
+            <Button
+              onPress={() => handleToggle(item.id)}
+              title={item.active ? 'Desativar' : 'Ativar'}
+              variant="ghost"
+              style={styles.action}
+            />
+            <Button
+              onPress={() => handleRemove(item.id)}
+              title="Remover"
+              variant="danger"
+              disabled={isSelf}
+              style={styles.action}
+            />
+          </View>
+        ) : null}
       </Card>
     );
   };

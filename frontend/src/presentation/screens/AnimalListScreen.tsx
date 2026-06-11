@@ -20,7 +20,7 @@ export const AnimalListScreen: React.FC = () => {
   const fazendaIdValue =
     typeof fazendaId === 'string' ? fazendaId : Array.isArray(fazendaId) ? fazendaId[0] : '';
   const { animals, loading, error, refresh } = useAnimals(fazendaIdValue);
-  const { canInviteMembers } = usePermissions(fazendaIdValue);
+  const { canViewMembers } = usePermissions(fazendaIdValue);
 
   useFocusEffect(
     useCallback(() => {
@@ -83,7 +83,7 @@ export const AnimalListScreen: React.FC = () => {
         <View style={styles.headerTop}>
           <Text style={styles.title}>Meu Rebanho</Text>
           <View style={styles.headerActions}>
-            {canInviteMembers ? (
+            {canViewMembers ? (
               <Button
                 onPress={() =>
                   router.push({

@@ -6,8 +6,10 @@ import {
   canCreateAnimal,
   canEditFarm,
   canInviteMembers,
+  canManageMembers,
   canManageFarm,
   canRegisterManejo,
+  canViewMembers,
 } from './permissions';
 
 export const usePermissions = (fazendaId?: string) => {
@@ -69,7 +71,6 @@ export const usePermissions = (fazendaId?: string) => {
   const isAdmin = role === 'ADMIN';
   const isFuncionario = role === 'FUNCIONARIO';
   const canCreateAnimalValue = canCreateAnimal(role);
-  const canManageMembers = isAdmin;
   const canRegisterManejoValue = canRegisterManejo(role);
 
   return {
@@ -78,7 +79,8 @@ export const usePermissions = (fazendaId?: string) => {
     isAdmin,
     isFuncionario,
     canCreateAnimal: canCreateAnimalValue,
-    canManageMembers,
+    canManageMembers: canManageMembers(role),
+    canViewMembers: canViewMembers(role),
     error,
     refresh,
     canManageFarm: canManageFarm(role),

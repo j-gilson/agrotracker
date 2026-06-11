@@ -5,6 +5,7 @@ import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { RoleGuard, Button, ErrorState } from '../components';
 import { MembersListScreen } from './MembersListScreen';
+import { usePermissions } from '../../core/auth/usePermissions';
 
 export const TeamManagementScreen: React.FC = () => {
   const params = useLocalSearchParams<{ fazendaId?: string | string[] }>();
@@ -14,28 +15,31 @@ export const TeamManagementScreen: React.FC = () => {
       : Array.isArray(params.fazendaId)
       ? params.fazendaId[0]
       : '';
+  const { canInviteMembers } = usePermissions(id);
 
   if (!id) {
     return <ErrorState message="Parâmetro obrigatório não informado: fazendaId." />;
   }
 
   return (
-    <RoleGuard fazendaId={id} roles={['ADMIN']}>
+    <RoleGuard fazendaId={id} roles={['ADMIN', 'FUNCIONARIO']}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <Text style={styles.title}>Equipe</Text>
-            <Button
-              onPress={() =>
-                router.push({
-                  pathname: AppRoutes.FAZENDA_TEAM_INVITE,
-                  params: { fazendaId: id },
-                } as unknown as Href)
-              }
-              title="Convidar"
-              variant="secondary"
-              style={styles.inviteButton}
-            />
+            {canInviteMembers ? (
+              <Button
+                onPress={() =>
+                  router.push({
+                    pathname: AppRoutes.FAZENDA_TEAM_INVITE,
+                    params: { fazendaId: id },
+                  } as unknown as Href)
+                }
+                title="Convidar"
+                variant="secondary"
+                style={styles.inviteButton}
+              />
+            ) : null}
           </View>
         </View>
 
