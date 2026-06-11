@@ -4,6 +4,7 @@ import { GetFazendas } from '../../domain/fazenda/usecases/GetFazendas';
 import { FazendaRepositoryImpl } from '../../data/fazenda/repositories/FazendaRepositoryImpl';
 import { activeFarmStore } from '../../core/storage/ActiveFarmStore';
 import { useAuthSession } from './AuthContext';
+import { resolveActiveFarmId } from './resolveActiveFarmId';
 
 interface ActiveFarmContextValue {
   activeFarmId: string | null;
@@ -59,12 +60,15 @@ export const ActiveFarmProvider: React.FC<React.PropsWithChildren> = ({ children
 
       if (cancelled) return;
 
-      if (savedId && loadedFarms.some((f) => f.id === savedId)) {
-        setActiveFarmId(savedId);
-      } else if (loadedFarms.length > 0 && loadedFarms[0].id) {
-        const firstFarmId = loadedFarms[0].id;
-        setActiveFarmId(firstFarmId);
-        await activeFarmStore.set(firstFarmId);
+      const nextActiveFarmId = resolveActiveFarmId(
+        loadedFarms,
+        null,
+        savedId
+      );
+
+      setActiveFarmId(nextActiveFarmId);
+      if (nextActiveFarmId && nextActiveFarmId !== savedId) {
+        await activeFarmStore.set(nextActiveFarmId);
       }
 
       setLoading(false);
@@ -89,20 +93,20 @@ export const ActiveFarmProvider: React.FC<React.PropsWithChildren> = ({ children
     const loadedFarms = await fetchFazendas();
     const currentId = activeFarmIdRef.current;
 
-    if (currentId && loadedFarms.some((f) => f.id === currentId)) {
-      return;
-    }
-
     const savedId = await activeFarmStore.get();
+    const nextActiveFarmId = resolveActiveFarmId(
+      loadedFarms,
+      currentId,
+      savedId
+    );
 
-    if (savedId && loadedFarms.some((f) => f.id === savedId)) {
-      setActiveFarmId(savedId);
-    } else if (loadedFarms.length > 0 && loadedFarms[0].id) {
-      const firstFarmId = loadedFarms[0].id;
-      setActiveFarmId(firstFarmId);
-      await activeFarmStore.set(firstFarmId);
+    setActiveFarmId(nextActiveFarmId);
+
+    if (nextActiveFarmId) {
+      if (nextActiveFarmId !== savedId) {
+        await activeFarmStore.set(nextActiveFarmId);
+      }
     } else {
-      setActiveFarmId(null);
       await activeFarmStore.clear();
     }
   }, [fetchFazendas]);

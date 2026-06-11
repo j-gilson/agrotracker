@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useFazendas } from '../viewmodels/useFazendas';
 import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
@@ -67,12 +67,24 @@ export const FazendaListScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Minhas Fazendas</Text>
-          <Button
-            onPress={() => router.push({ pathname: AppRoutes.CREATE_FAZENDA })}
-            style={styles.addButton}
-            title="+ Novo"
-            variant="secondary"
-          />
+          <View style={styles.headerActions}>
+            <Button
+              onPress={() =>
+                router.push({
+                  pathname: AppRoutes.INVITES,
+                } as unknown as Href)
+              }
+              style={styles.headerButton}
+              title="Convites"
+              variant="ghost"
+            />
+            <Button
+              onPress={() => router.push({ pathname: AppRoutes.CREATE_FAZENDA })}
+              style={styles.headerButton}
+              title="+ Novo"
+              variant="secondary"
+            />
+          </View>
         </View>
       </View>
 
@@ -116,10 +128,13 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.textInverse,
   },
-  addButton: {
+  headerActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+  },
+  headerButton: {
     minHeight: 40,
-    paddingHorizontal: 14,
-    borderColor: theme.colors.transparent,
+    paddingHorizontal: 12,
   },
   listContainer: {
     padding: theme.spacing.sm - 2,

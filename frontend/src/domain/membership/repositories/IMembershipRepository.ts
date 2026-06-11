@@ -9,5 +9,7 @@ export interface IMembershipRepository {
   changeRole(fazendaId: string, memberId: string, role: MemberRole): Promise<void>;
   toggleActive(fazendaId: string, memberId: string): Promise<void>;
   removeMember(fazendaId: string, memberId: string): Promise<void>;
+  getPendingInvites(): Promise<Invite[]>;
   acceptInvite(token: string): Promise<void>;
+  rejectInvite(inviteId: string): Promise<void>;
 }

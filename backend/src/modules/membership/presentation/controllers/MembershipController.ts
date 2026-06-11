@@ -3,7 +3,9 @@ import { MembershipError } from "../../application/errors/MembershipError";
 import { AcceptInvite } from "../../application/usecases/AcceptInvite";
 import { ChangeMemberRole } from "../../application/usecases/ChangeMemberRole";
 import { GetMembersByFazenda } from "../../application/usecases/GetMembersByFazenda";
+import { GetPendingInvites } from "../../application/usecases/GetPendingInvites";
 import { InviteUserToFazenda } from "../../application/usecases/InviteUserToFazenda";
+import { RejectInvite } from "../../application/usecases/RejectInvite";
 import { RemoveMember } from "../../application/usecases/RemoveMember";
 import { ToggleMemberActive } from "../../application/usecases/ToggleMemberActive";
 import { MemberRole } from "../../domain/types";
@@ -15,7 +17,9 @@ export class MembershipController {
     private readonly getMembersByFazenda: GetMembersByFazenda,
     private readonly changeMemberRole: ChangeMemberRole,
     private readonly toggleMemberActive: ToggleMemberActive,
-    private readonly removeMember: RemoveMember
+    private readonly removeMember: RemoveMember,
+    private readonly getPendingInvites: GetPendingInvites,
+    private readonly rejectInvite: RejectInvite
   ) {}
 
   async invite(req: Request, res: Response): Promise<Response> {
@@ -77,6 +81,65 @@ export class MembershipController {
         return res.status(error.statusCode).json({ success: false, message: error.message });
       }
       return res.status(500).json({ success: false, message: "Erro inesperado ao aceitar convite." });
+    }
+  }
+
+  async listInvites(req: Request, res: Response): Promise<Response> {
+    try {
+      const currentUser = res.locals.currentUser as
+        | { id: string; nome: string; email: string }
+        | undefined;
+      const invites = await this.getPendingInvites.execute(
+        currentUser?.email ?? ""
+      );
+
+      return res.status(200).json({ success: true, invites });
+    } catch (error: unknown) {
+      if (error instanceof MembershipError) {
+        return res
+          .status(error.statusCode)
+          .json({ success: false, message: error.message });
+      }
+      return res.status(500).json({
+        success: false,
+        message: "Erro inesperado ao listar convites.",
+      });
+    }
+  }
+
+  async reject(req: Request, res: Response): Promise<Response> {
+    try {
+      const inviteId = req.params.id as string;
+      const currentUser = res.locals.currentUser as
+        | { id: string; nome: string; email: string }
+        | undefined;
+
+      const invite = await this.rejectInvite.execute({
+        inviteId,
+        userId: currentUser?.id ?? "",
+      });
+
+      return res.status(200).json({
+        success: true,
+        invite: {
+          id: invite.id,
+          fazendaId: invite.fazendaId,
+          email: invite.email,
+          role: invite.role,
+          status: invite.status,
+          createdAt: invite.createdAt.toISOString(),
+        },
+      });
+    } catch (error: unknown) {
+      if (error instanceof MembershipError) {
+        return res
+          .status(error.statusCode)
+          .json({ success: false, message: error.message });
+      }
+      return res.status(500).json({
+        success: false,
+        message: "Erro inesperado ao recusar convite.",
+      });
     }
   }
 

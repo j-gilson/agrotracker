@@ -15,6 +15,9 @@ import { GetMembersByFazenda } from "../../application/usecases/GetMembersByFaze
 import { ChangeMemberRole } from "../../application/usecases/ChangeMemberRole";
 import { ToggleMemberActive } from "../../application/usecases/ToggleMemberActive";
 import { RemoveMember } from "../../application/usecases/RemoveMember";
+import { GetPendingInvites } from "../../application/usecases/GetPendingInvites";
+import { RejectInvite } from "../../application/usecases/RejectInvite";
+import { FazendaRepository } from "../../../fazenda/infra/repositories/FazendaRepository";
 
 const membershipRoutes = Router();
 
@@ -25,6 +28,7 @@ const ensureAuthenticated = makeEnsureAuthenticated(getCurrentUser);
 
 const memberRepository = new LocalFazendaMemberRepository();
 const inviteRepository = new LocalInviteRepository();
+const fazendaRepository = new FazendaRepository();
 
 const addMemberToFazenda = new AddMemberToFazenda(memberRepository);
 const inviteUserToFazenda = new InviteUserToFazenda(memberRepository, inviteRepository, userRepository);
@@ -33,6 +37,11 @@ const getMembersByFazenda = new GetMembersByFazenda(memberRepository, userReposi
 const changeMemberRole = new ChangeMemberRole(memberRepository);
 const toggleMemberActive = new ToggleMemberActive(memberRepository);
 const removeMember = new RemoveMember(memberRepository);
+const getPendingInvites = new GetPendingInvites(
+  inviteRepository,
+  fazendaRepository
+);
+const rejectInvite = new RejectInvite(inviteRepository, userRepository);
 
 const controller = new MembershipController(
   inviteUserToFazenda,
@@ -40,7 +49,9 @@ const controller = new MembershipController(
   getMembersByFazenda,
   changeMemberRole,
   toggleMemberActive,
-  removeMember
+  removeMember,
+  getPendingInvites,
+  rejectInvite
 );
 
 const ensureFazendaMemberFromParams = makeEnsureFazendaMember(memberRepository, (req) => String(req.params.id ?? ""));
@@ -95,5 +106,11 @@ membershipRoutes.delete(
 );
 
 membershipRoutes.post("/invites/accept", ensureAuthenticated, (req, res) => controller.accept(req, res));
+membershipRoutes.get("/invites", ensureAuthenticated, (req, res) =>
+  controller.listInvites(req, res)
+);
+membershipRoutes.post("/invites/:id/reject", ensureAuthenticated, (req, res) =>
+  controller.reject(req, res)
+);
 
 export { membershipRoutes };

@@ -16,10 +16,11 @@ export interface MemberResponse {
 export interface InviteResponse {
   id: string;
   fazendaId: string;
+  fazendaNome?: string;
   email: string;
   role: MemberRole;
   token: string;
-  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
+  status: 'PENDING' | 'ACCEPTED' | 'RECUSADO' | 'EXPIRED';
   createdAt: string;
 }
 
@@ -54,5 +55,17 @@ export const membershipApi = {
 
   async acceptInvite(token: string): Promise<{ success: boolean }> {
     return apiClient.post<{ success: boolean }>('/invites/accept', { token });
+  },
+
+  async getPendingInvites(): Promise<{ success: boolean; invites: InviteResponse[] }> {
+    return apiClient.get<{ success: boolean; invites: InviteResponse[] }>(
+      '/invites'
+    );
+  },
+
+  async rejectInvite(inviteId: string): Promise<{ success: boolean }> {
+    return apiClient.post<{ success: boolean }>(
+      `/invites/${inviteId}/reject`
+    );
   },
 };

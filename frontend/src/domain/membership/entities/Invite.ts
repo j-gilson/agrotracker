@@ -3,6 +3,7 @@ import { InviteStatus, MemberRole } from '../types';
 export interface InviteProps {
   id: string;
   fazendaId: string;
+  fazendaNome?: string;
   email: string;
   role: MemberRole;
   token: string;
@@ -31,6 +32,10 @@ export class Invite {
     return this.props.fazendaId;
   }
 
+  get fazendaNome(): string | undefined {
+    return this.props.fazendaNome;
+  }
+
   get email(): string {
     return this.props.email;
   }
@@ -51,4 +56,3 @@ export class Invite {
     return this.props.createdAt;
   }
 }
-

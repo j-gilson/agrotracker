@@ -6,6 +6,7 @@ export const AppRoutes = {
   CREATE_FAZENDA: '/fazendas/create' as const,
   FAZENDA_TEAM: '/fazenda/team' as const,
   FAZENDA_TEAM_INVITE: '/fazenda/team/invite' as const,
+  INVITES: '/invites' as const,
   INVENTARIO: '/inventario' as const,
   MANEJOS: '/manejos' as const,
   SCANNER: '/scanner' as const,
@@ -40,6 +41,7 @@ export type StaticAppRoute =
   | typeof AppRoutes.CREATE_FAZENDA
   | typeof AppRoutes.FAZENDA_TEAM
   | typeof AppRoutes.FAZENDA_TEAM_INVITE
+  | typeof AppRoutes.INVITES
   | typeof AppRoutes.INVENTARIO
   | typeof AppRoutes.MANEJOS
   | typeof AppRoutes.SCANNER

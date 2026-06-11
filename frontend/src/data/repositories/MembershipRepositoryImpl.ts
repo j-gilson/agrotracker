@@ -12,6 +12,7 @@ export class MembershipRepositoryImpl implements IMembershipRepository {
     return new Invite({
       id: invite.id,
       fazendaId: invite.fazendaId,
+      fazendaNome: invite.fazendaNome,
       email: invite.email,
       role: invite.role,
       token: invite.token,
@@ -62,5 +63,27 @@ export class MembershipRepositoryImpl implements IMembershipRepository {
 
   async acceptInvite(token: string): Promise<void> {
     await membershipApi.acceptInvite(token);
+  }
+
+  async getPendingInvites(): Promise<Invite[]> {
+    const response = await membershipApi.getPendingInvites();
+
+    return response.invites.map(
+      (invite) =>
+        new Invite({
+          id: invite.id,
+          fazendaId: invite.fazendaId,
+          fazendaNome: invite.fazendaNome,
+          email: invite.email,
+          role: invite.role,
+          token: invite.token,
+          status: invite.status,
+          createdAt: new Date(invite.createdAt),
+        })
+    );
+  }
+
+  async rejectInvite(inviteId: string): Promise<void> {
+    await membershipApi.rejectInvite(inviteId);
   }
 }

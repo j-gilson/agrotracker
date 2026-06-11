@@ -74,6 +74,18 @@ export class LocalInviteRepository implements IInviteRepository {
     return found ? toDomain(found) : undefined;
   }
 
+  async findPendingByEmail(email: string): Promise<Invite[]> {
+    const normalized = email.trim().toLowerCase();
+    const invites = await this.readAll();
+    return invites
+      .filter(
+        (invite) =>
+          invite.email.toLowerCase() === normalized &&
+          invite.status === "PENDING"
+      )
+      .map(toDomain);
+  }
+
   async findPendingByFazendaAndEmail(fazendaId: string, email: string): Promise<Invite | undefined> {
     const normalized = email.trim().toLowerCase();
     const invites = await this.readAll();
@@ -100,4 +112,3 @@ export class LocalInviteRepository implements IInviteRepository {
     return invite;
   }
 }
-
