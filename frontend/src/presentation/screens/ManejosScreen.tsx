@@ -15,6 +15,7 @@ import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { formatDate } from '../../core/utils/formatDate';
+import { refreshOnReturn } from '../navigation/refreshOnReturn';
 
 export const ManejosScreen: React.FC = () => {
   const { activeFarmId, activeFarm, loading: farmsLoading } = useActiveFarm();
@@ -23,12 +24,7 @@ export const ManejosScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!hasFocusedOnceRef.current) {
-        hasFocusedOnceRef.current = true;
-        return;
-      }
-
-      refresh();
+      refreshOnReturn(hasFocusedOnceRef, refresh);
     }, [refresh])
   );
 

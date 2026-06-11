@@ -1,8 +1,10 @@
+import { EventType, isEventType } from '../types';
+
 export interface EventProps {
   id?: string;
   animalId: string;
   fazendaId: string;
-  type: string;
+  type: EventType;
   description: string;
   date: Date;
   createdBy: string;
@@ -21,8 +23,8 @@ export class Event {
     if (!this.props.fazendaId?.trim()) {
       throw new Error('ID da fazenda é obrigatório');
     }
-    if (!this.props.type?.trim()) {
-      throw new Error('Tipo do evento é obrigatório');
+    if (!isEventType(this.props.type)) {
+      throw new Error('Tipo de evento inválido');
     }
     if (!this.props.description?.trim()) {
       throw new Error('Descrição é obrigatória');
@@ -41,7 +43,7 @@ export class Event {
   get fazendaId() {
     return this.props.fazendaId;
   }
-  get type() {
+  get type(): EventType {
     return this.props.type;
   }
   get description() {

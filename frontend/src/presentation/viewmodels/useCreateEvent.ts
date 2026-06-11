@@ -3,6 +3,7 @@ import { CreateEvent } from '../../domain/events/usecases/CreateEvent';
 import { Event } from '../../domain/events/entities/Event';
 import { EventRepositoryImpl } from '../../data/events/repositories/EventRepositoryImpl';
 import { humanizeError } from '../../core/utils/humanizeError';
+import { EventType } from '../../domain/events/types';
 
 export const useCreateEvent = () => {
   const [loading, setLoading] = useState(false);
@@ -14,7 +15,7 @@ export const useCreateEvent = () => {
   const useCase = useMemo(() => new CreateEvent(repository), [repository]);
 
   const createEvent = useCallback(
-    async (input: { animalId: string; fazendaId: string; type: string; description: string; date: Date }) => {
+    async (input: { animalId: string; fazendaId: string; type: EventType; description: string; date: Date }) => {
       try {
         setLoading(true);
         setError(null);

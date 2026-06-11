@@ -4,11 +4,12 @@ import { IEventRepository } from "../../domain/contracts/IEventRepository";
 import { IAnimalRepository } from "../../../animal/domain/repositories/IAnimalRepository";
 import { IFazendaMemberRepository } from "../../../membership/contracts/IFazendaMemberRepository";
 import { EventError } from "../errors/EventError";
+import { EventType, isEventType } from "../../domain/types";
 
 export interface CreateEventInput {
   animalId: string;
   fazendaId: string;
-  type: string;
+  type: EventType | string;
   description: string;
   date: Date;
   createdBy: string;
@@ -24,13 +25,13 @@ export class CreateEvent {
   async execute(input: CreateEventInput): Promise<Event> {
     const animalId = input.animalId?.trim() ?? "";
     const requestedFazendaId = input.fazendaId?.trim() ?? "";
-    const type = input.type?.trim() ?? "";
+    const type = typeof input.type === "string" ? input.type.trim() : "";
     const description = input.description?.trim() ?? "";
     const createdBy = input.createdBy?.trim() ?? "";
 
     if (!animalId) throw new EventError("O animal do evento é obrigatório.", 400);
     if (!requestedFazendaId) throw new EventError("A fazenda do evento é obrigatória.", 400);
-    if (!type) throw new EventError("O tipo do evento é obrigatório.", 400);
+    if (!isEventType(type)) throw new EventError("Tipo de evento invalido.", 400);
     if (!description) throw new EventError("A descrição do evento é obrigatória.", 400);
     if (!createdBy) throw new EventError("O usuário responsável pelo evento é obrigatório.", 400);
 

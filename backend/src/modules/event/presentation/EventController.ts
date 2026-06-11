@@ -3,6 +3,7 @@ import { CreateEvent } from "../application/usecases/CreateEvent";
 import { GetEventsByAnimal } from "../application/usecases/GetEventsByAnimal";
 import { GetEventsByFazenda } from "../application/usecases/GetEventsByFazenda";
 import { EventError } from "../application/errors/EventError";
+import { isEventType } from "../domain/types";
 
 export class EventController {
   constructor(
@@ -26,8 +27,12 @@ export class EventController {
       const descriptionValue = description?.trim() ?? "";
       const parsedDate = date ? new Date(date) : new Date("");
 
-      if (!animalIdValue || !fazendaIdValue || !typeValue || !descriptionValue) {
+      if (!animalIdValue || !fazendaIdValue || !type || !descriptionValue) {
         return res.status(400).json({ success: false, message: "animalId, fazendaId, type e description sao obrigatorios." });
+      }
+
+      if (!isEventType(typeValue)) {
+        return res.status(400).json({ success: false, message: "Tipo de evento invalido." });
       }
 
       if (Number.isNaN(parsedDate.getTime())) {
@@ -70,7 +75,6 @@ export class EventController {
   async listByAnimal(req: Request, res: Response): Promise<Response> {
     try {
       const animalId = typeof req.query.animalId === "string" ? req.query.animalId.trim() : "";
-      const limit = Math.max(1, Math.min(Number(req.query.limit) || 10, 50));
       const currentUser = res.locals.currentUser as { id: string } | undefined;
 
       if (!animalId) {
@@ -78,11 +82,10 @@ export class EventController {
       }
 
       const events = await this.getEventsByAnimal.execute(animalId, currentUser?.id ?? "");
-      const limitedEvents = events.slice(0, limit);
 
       return res.status(200).json({
         success: true,
-        events: limitedEvents.map((event) => ({
+        events: events.map((event) => ({
           id: event.id,
           animalId: event.animalId,
           fazendaId: event.fazendaId,
@@ -104,7 +107,6 @@ export class EventController {
   async listByFazenda(req: Request, res: Response): Promise<Response> {
     try {
       const fazendaId = String(req.params.id ?? "").trim();
-      const limit = Math.max(1, Math.min(Number(req.query.limit) || 10, 50));
       const currentUser = res.locals.currentUser as { id: string } | undefined;
 
       if (!fazendaId) {
@@ -112,11 +114,10 @@ export class EventController {
       }
 
       const events = await this.getEventsByFazenda.execute(fazendaId, currentUser?.id ?? "");
-      const limitedEvents = events.slice(0, limit);
 
       return res.status(200).json({
         success: true,
-        events: limitedEvents.map((event) => ({
+        events: events.map((event) => ({
           id: event.id,
           animalId: event.animalId,
           fazendaId: event.fazendaId,

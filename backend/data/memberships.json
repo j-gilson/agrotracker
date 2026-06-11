@@ -6,5 +6,13 @@
     "role": "ADMIN",
     "active": true,
     "createdAt": "2026-06-11T02:19:06.501Z"
+  },
+  {
+    "id": "acc2244e-695c-4c39-9766-82e6fb24f1cd",
+    "fazendaId": "78f9fc14-2ad0-4363-a55b-25dddeef2319",
+    "userId": "3f2760fe-c224-4e4d-bb4b-be3bdf2159fc",
+    "role": "ADMIN",
+    "active": true,
+    "createdAt": "2026-06-11T23:57:54.691Z"
   }
 ]

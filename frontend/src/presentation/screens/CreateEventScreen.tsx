@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { useCreateEvent } from '../viewmodels/useCreateEvent';
+import { EVENT_TYPE_OPTIONS, EventType } from '../../domain/events/types';
 
 export const CreateEventScreen: React.FC = () => {
   const params = useLocalSearchParams();
@@ -22,17 +23,12 @@ export const CreateEventScreen: React.FC = () => {
       ? params.fazendaId[0]
       : '';
 
-  const [type, setType] = useState('');
+  const [type, setType] = useState<EventType | null>(null);
   const [description, setDescription] = useState('');
   const [dateText, setDateText] = useState(() => new Date().toISOString().slice(0, 16));
 
-  const { createEvent, loading, error, success, createdEvent, resetState } = useCreateEvent();
+  const { createEvent, loading, error, success, resetState } = useCreateEvent();
   const { showSnackbar } = useSnackbar();
-
-  const typeError = useMemo(() => {
-    if (!type) return undefined;
-    return type.trim().length < 3 ? 'Informe um tipo com ao menos 3 caracteres.' : undefined;
-  }, [type]);
 
   const descriptionError = useMemo(() => {
     if (!description) return undefined;
@@ -47,10 +43,9 @@ export const CreateEventScreen: React.FC = () => {
   const isValid =
     !!animalId &&
     !!fazendaId &&
-    type.trim().length >= 3 &&
+    !!type &&
     description.trim().length >= 3 &&
     !!parsedDate &&
-    !typeError &&
     !descriptionError;
 
   useEffect(() => {
@@ -59,12 +54,8 @@ export const CreateEventScreen: React.FC = () => {
     showSnackbar({ message: 'Manejo registrado com sucesso.', variant: 'success' });
     resetState();
 
-    if (createdEvent?.animalId) {
-      router.back();
-    } else {
-      router.back();
-    }
-  }, [createdEvent?.animalId, resetState, showSnackbar, success]);
+    router.back();
+  }, [resetState, showSnackbar, success]);
 
   const handleSubmit = async () => {
     if (loading || !isValid || !parsedDate) return;
@@ -72,7 +63,7 @@ export const CreateEventScreen: React.FC = () => {
     await createEvent({
       animalId,
       fazendaId,
-      type: type.trim(),
+      type,
       description: description.trim(),
       date: parsedDate,
     });
@@ -98,14 +89,27 @@ export const CreateEventScreen: React.FC = () => {
         </View>
 
         <Card padding={20} shadow style={styles.form}>
-          <Input
-            label="Tipo"
-            value={type}
-            onChangeText={setType}
-            placeholder="Ex: VACINA, PESAGEM"
-            error={typeError}
-            returnKeyType="next"
-          />
+          <View style={styles.typeField}>
+            <Text style={styles.fieldLabel}>Tipo</Text>
+            <View style={styles.typeOptions}>
+              {EVENT_TYPE_OPTIONS.map((option) => {
+                const selected = type === option.value;
+                return (
+                  <Pressable
+                    key={option.value}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    onPress={() => setType(option.value)}
+                    style={[styles.typeOption, selected && styles.typeOptionSelected]}
+                  >
+                    <Text style={[styles.typeOptionText, selected && styles.typeOptionTextSelected]}>
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
           <Input
             label="Descrição"
@@ -166,5 +170,38 @@ const styles = StyleSheet.create({
   },
   form: {
     elevation: 4,
+  },
+  typeField: {
+    gap: theme.spacing.sm,
+  },
+  fieldLabel: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+  },
+  typeOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
+  typeOption: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.pill,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+  },
+  typeOptionSelected: {
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary,
+  },
+  typeOptionText: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textPrimary,
+  },
+  typeOptionTextSelected: {
+    color: theme.colors.white,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
 });

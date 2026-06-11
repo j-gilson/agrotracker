@@ -1,10 +1,11 @@
 import { apiClient } from '../../../core/network/ApiClient';
+import { EventType } from '../../../domain/events/types';
 
 export interface EventResponse {
   id: string;
   animalId: string;
   fazendaId: string;
-  type: string;
+  type: EventType;
   description: string;
   date: string;
   createdBy: string;
@@ -14,7 +15,7 @@ export interface EventResponse {
 export interface CreateEventRequest {
   animalId: string;
   fazendaId: string;
-  type: string;
+  type: EventType;
   description: string;
   date: string;
 }

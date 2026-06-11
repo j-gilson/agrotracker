@@ -1,4 +1,4 @@
-import { EventType } from "../types";
+import { EventType, isEventType } from "../types";
 
 export interface EventProps {
   id: string;
@@ -23,7 +23,7 @@ export class Event {
     if (!this.props.id?.trim()) throw new Error("Id invalido.");
     if (!this.props.animalId?.trim()) throw new Error("Animal invalido.");
     if (!this.props.fazendaId?.trim()) throw new Error("Fazenda invalida.");
-    if (!this.props.type?.trim()) throw new Error("Tipo invalido.");
+    if (!isEventType(this.props.type)) throw new Error("Tipo de evento invalido.");
     if (!this.props.description?.trim()) throw new Error("Descricao invalida.");
     if (!(this.props.date instanceof Date) || Number.isNaN(this.props.date.getTime())) {
       throw new Error("Data invalida.");

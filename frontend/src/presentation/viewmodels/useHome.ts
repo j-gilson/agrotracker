@@ -4,12 +4,7 @@ import { AnimalRepositoryImpl } from '../../data/repositories/AnimalRepositoryIm
 import { GetEventsByFazenda } from '../../domain/events/usecases/GetEventsByFazenda';
 import { EventRepositoryImpl } from '../../data/events/repositories/EventRepositoryImpl';
 import { humanizeError } from '../../core/utils/humanizeError';
-
-export interface HomeStats {
-  animais: number;
-  manejos: number;
-  fazendas: number;
-}
+import { buildHomeStats, HomeStats } from './homeStats';
 
 export const useHome = (activeFarmId: string | null) => {
   const [stats, setStats] = useState<HomeStats>({
@@ -41,11 +36,7 @@ export const useHome = (activeFarmId: string | null) => {
           getEventsByFazendaUseCase.execute(activeFarmId),
         ]);
 
-        setStats({
-          animais: animals.length,
-          manejos: events.length,
-          fazendas: 1,
-        });
+        setStats(buildHomeStats(animals.length, events.length));
       } else {
         setStats({ animais: 0, manejos: 0, fazendas: 0 });
       }

@@ -1,3 +1,4 @@
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,10 +10,11 @@ import {
 } from 'react-native';
 import { useHome } from '../viewmodels/useHome';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
+import { refreshOnReturn } from '../navigation/refreshOnReturn';
 
 export const HomeScreen: React.FC = () => {
   const {
@@ -22,6 +24,13 @@ export const HomeScreen: React.FC = () => {
     setActiveFarm,
   } = useActiveFarm();
   const { stats, loading: statsLoading, error, refresh } = useHome(activeFarmId);
+  const hasFocusedOnceRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshOnReturn(hasFocusedOnceRef, refresh);
+    }, [refresh])
+  );
 
   const handleScanPress = () => {
     router.push(AppRoutes.SCANNER_WITH_FAZENDA(activeFarmId));
@@ -32,6 +41,10 @@ export const HomeScreen: React.FC = () => {
       pathname: AppRoutes.INVENTARIO,
       params: activeFarmId ? { fazendaId: activeFarmId } : {},
     });
+  };
+
+  const handleManejosPress = () => {
+    router.push({ pathname: AppRoutes.MANEJOS });
   };
 
   const handleNovaFazendaPress = () => {
@@ -167,6 +180,11 @@ export const HomeScreen: React.FC = () => {
             icon="📋"
           />
           <QuickActionCard
+            label="Manejos"
+            onPress={handleManejosPress}
+            icon="📝"
+          />
+          <QuickActionCard
             label="Nova Fazenda"
             onPress={handleNovaFazendaPress}
             icon="🚜"
@@ -276,11 +294,13 @@ const styles = StyleSheet.create({
   },
   quickActionsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: theme.spacing.lg,
   },
   quickActionCard: {
     flex: 1,
+    minWidth: 96,
     alignItems: 'center',
     marginHorizontal: theme.spacing.xs - 2,
   },

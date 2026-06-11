@@ -15,6 +15,7 @@ import { theme } from '../../core/theme';
 import { formatDate } from '../../core/utils/formatDate';
 import { formatWeight } from '../../core/utils/formatWeight';
 import { AppRoutes } from '../../core/routes/AppRoutes';
+import { refreshOnReturn } from '../navigation/refreshOnReturn';
 
 export const AnimalDetailScreen: React.FC = () => {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -25,12 +26,7 @@ export const AnimalDetailScreen: React.FC = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      if (!hasFocusedOnceRef.current) {
-        hasFocusedOnceRef.current = true;
-        return;
-      }
-
-      refresh();
+      refreshOnReturn(hasFocusedOnceRef, refresh);
     }, [refresh])
   );
 

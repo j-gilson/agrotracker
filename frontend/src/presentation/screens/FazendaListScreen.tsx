@@ -13,9 +13,11 @@ import { router, useFocusEffect, type Href } from 'expo-router';
 import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
+import { useActiveFarm } from '../contexts/ActiveFarmContext';
 
 export const FazendaListScreen: React.FC = () => {
   const { fazendas, loading, error, refresh } = useFazendas();
+  const { setActiveFarm } = useActiveFarm();
 
   useFocusEffect(
     useCallback(() => {
@@ -30,19 +32,33 @@ export const FazendaListScreen: React.FC = () => {
     });
   };
 
+  const handleManejosPress = async (fazendaId: string) => {
+    await setActiveFarm(fazendaId);
+    router.push({ pathname: AppRoutes.MANEJOS });
+  };
+
   const renderItem = ({ item }: { item: Fazenda }) => (
-    <Card
-      marginBottom={12}
-      onPress={() => item.id && handleFazendaPress(item.id)}
-      style={styles.card}
-    >
-      <View style={styles.cardHeader}>
-        <Text style={styles.fazendaName}>{item.nome}</Text>
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.fazendaLocation}>📍 {item.localizacao}</Text>
-      </View>
-    </Card>
+    <View style={styles.fazendaItem}>
+      <Card
+        onPress={() => item.id && handleFazendaPress(item.id)}
+        style={styles.card}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.fazendaName}>{item.nome}</Text>
+        </View>
+        <View style={styles.cardContent}>
+          <Text style={styles.fazendaLocation}>📍 {item.localizacao}</Text>
+        </View>
+      </Card>
+      {item.id ? (
+        <Button
+          onPress={() => handleManejosPress(item.id as string)}
+          title="Ver Manejos"
+          variant="ghost"
+          style={styles.manejosButton}
+        />
+      ) : null}
+    </View>
   );
 
   const renderEmpty = () => (
@@ -142,6 +158,14 @@ const styles = StyleSheet.create({
   },
   card: {
     borderColor: theme.colors.border,
+  },
+  fazendaItem: {
+    marginBottom: theme.spacing.md,
+  },
+  manejosButton: {
+    alignSelf: 'flex-end',
+    minHeight: 40,
+    marginTop: theme.spacing.xxs,
   },
   cardHeader: {
     marginBottom: theme.spacing.xs,

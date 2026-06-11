@@ -2,12 +2,13 @@ import { promises as fs } from "fs";
 import path from "path";
 import { Event } from "../../domain/entities/Event";
 import { IEventRepository } from "../../domain/contracts/IEventRepository";
+import { EventType, normalizeEventType } from "../../domain/types";
 
 type StoredEvent = {
   id: string;
   animalId: string;
   fazendaId: string;
-  type: string;
+  type: EventType;
   description: string;
   date: string;
   createdBy: string;
@@ -27,17 +28,21 @@ const ensureFile = async (): Promise<void> => {
   }
 };
 
-const toDomain = (stored: StoredEvent): Event =>
-  new Event({
+const toDomain = (stored: StoredEvent): Event => {
+  const type = normalizeEventType(stored.type);
+  if (!type) throw new Error(`Tipo de evento persistido invalido: ${String(stored.type)}`);
+
+  return new Event({
     id: stored.id,
     animalId: stored.animalId,
     fazendaId: stored.fazendaId,
-    type: stored.type,
+    type,
     description: stored.description,
     date: new Date(stored.date),
     createdBy: stored.createdBy,
     createdAt: new Date(stored.createdAt),
   });
+};
 
 const toStored = (event: Event): StoredEvent => ({
   id: event.id,
