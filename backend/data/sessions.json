@@ -13,5 +13,10 @@
     "token": "mock.3f2760fe-c224-4e4d-bb4b-be3bdf2159fc.22f0d6a465cc30bd9b091c89fff3ecdd",
     "userId": "3f2760fe-c224-4e4d-bb4b-be3bdf2159fc",
     "createdAt": "2026-06-11T23:54:16.411Z"
+  },
+  {
+    "token": "mock.3591b5fe-8804-4d37-88fe-d9e3bc6f9f25.c00486bd4904264e09490e1a97dcf2f2",
+    "userId": "3591b5fe-8804-4d37-88fe-d9e3bc6f9f25",
+    "createdAt": "2026-06-12T00:37:26.885Z"
   }
 ]

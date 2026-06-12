@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "12ac95f2-5958-4999-9238-a05b0dd0911c",
+    "fazendaId": "b4ce8887-7eb6-4da3-adbf-2ed4019c565a",
+    "email": "tempo@email.com",
+    "role": "FUNCIONARIO",
+    "token": "03c256f5ed7f3cb57b725c34a4abd579162258ce20e2474c",
+    "status": "PENDING",
+    "createdAt": "2026-06-12T00:38:18.466Z"
+  }
+]

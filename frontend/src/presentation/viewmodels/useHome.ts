@@ -6,7 +6,7 @@ import { EventRepositoryImpl } from '../../data/events/repositories/EventReposit
 import { humanizeError } from '../../core/utils/humanizeError';
 import { buildHomeStats, HomeStats } from './homeStats';
 
-export const useHome = (activeFarmId: string | null) => {
+export const useHome = (activeFarmId: string | null, farmsCount: number) => {
   const [stats, setStats] = useState<HomeStats>({
     animais: 0,
     manejos: 0,
@@ -36,9 +36,9 @@ export const useHome = (activeFarmId: string | null) => {
           getEventsByFazendaUseCase.execute(activeFarmId),
         ]);
 
-        setStats(buildHomeStats(animals.length, events.length));
+        setStats(buildHomeStats(animals.length, events.length, farmsCount));
       } else {
-        setStats({ animais: 0, manejos: 0, fazendas: 0 });
+        setStats({ animais: 0, manejos: 0, fazendas: farmsCount });
       }
     } catch (err: unknown) {
       setError(
@@ -50,7 +50,7 @@ export const useHome = (activeFarmId: string | null) => {
     } finally {
       setLoading(false);
     }
-  }, [activeFarmId, getAnimalsUseCase, getEventsByFazendaUseCase]);
+  }, [activeFarmId, farmsCount, getAnimalsUseCase, getEventsByFazendaUseCase]);
 
   useEffect(() => {
     fetchStats();

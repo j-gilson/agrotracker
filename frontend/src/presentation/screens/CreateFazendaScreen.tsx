@@ -35,24 +35,25 @@ export const CreateFazendaScreen: React.FC = () => {
     !localizacaoError;
 
   useEffect(() => {
-    if (!success) return;
+    if (!success || !createdFazenda?.id) return;
 
-    if (createdFazenda?.id) {
-      const afterCreate = async () => {
+    const { id, nome } = createdFazenda;
+    const afterCreate = async () => {
+      try {
         await refreshFarms();
-        await setActiveFarm(createdFazenda.id!);
-      };
-      afterCreate();
-    }
-
-    showSnackbar({
-      message: createdFazenda
-        ? `Fazenda ${createdFazenda.nome} cadastrada com sucesso.`
-        : 'Fazenda cadastrada com sucesso.',
-      variant: 'success',
-    });
-    resetState();
-    router.replace({ pathname: AppRoutes.FAZENDAS });
+        await setActiveFarm(id);
+      } catch {
+        // Fazenda foi criada no backend, mas sync local falhou
+      } finally {
+        showSnackbar({
+          message: `Fazenda ${nome} cadastrada com sucesso.`,
+          variant: 'success',
+        });
+        resetState();
+        router.replace({ pathname: AppRoutes.FAZENDAS });
+      }
+    };
+    afterCreate();
   }, [createdFazenda, refreshFarms, resetState, setActiveFarm, showSnackbar, success]);
   
   const handleCreate = async () => {

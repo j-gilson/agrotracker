@@ -68,8 +68,8 @@ export const useRegisterViewModel = () => {
       return false;
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter ao menos 6 caracteres.');
+    if (password.length < 8) {
+      setError('A senha deve ter ao menos 8 caracteres.');
       return false;
     }
 

@@ -29,13 +29,9 @@ export const ActiveFarmProvider: React.FC<React.PropsWithChildren> = ({ children
   }, []);
 
   const fetchFazendas = useCallback(async (): Promise<Fazenda[]> => {
-    try {
-      const result = await getFazendasUseCase.execute();
-      setFarms(result);
-      return result;
-    } catch {
-      return [];
-    }
+    const result = await getFazendasUseCase.execute();
+    setFarms(result);
+    return result;
   }, [getFazendasUseCase]);
 
   useEffect(() => {
@@ -55,7 +51,7 @@ export const ActiveFarmProvider: React.FC<React.PropsWithChildren> = ({ children
 
       const [savedId, loadedFarms] = await Promise.all([
         activeFarmStore.get(),
-        fetchFazendas(),
+        fetchFazendas().catch(() => [] as Fazenda[]),
       ]);
 
       if (cancelled) return;

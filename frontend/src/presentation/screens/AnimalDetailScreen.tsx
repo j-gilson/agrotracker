@@ -72,14 +72,16 @@ export const AnimalDetailScreen: React.FC = () => {
 
 
 
-        <View style={styles.tabsRow}>
-          <Pressable style={styles.tabActive}>
-            <Text style={styles.tabTextActive}>Dados</Text>
-          </Pressable>
-          <Pressable style={styles.tab}>
-            <Text style={styles.tabText}>Histórico</Text>
-          </Pressable>
-        </View>
+        {animal?.id ? (
+          <Button
+            title="Editar"
+            variant="secondary"
+            onPress={() =>
+              router.push(AppRoutes.EDIT_ANIMAL(animal.id) as unknown as Href)
+            }
+            style={styles.editButton}
+          />
+        ) : null}
 
         <Card marginBottom={24} shadow={false} style={styles.card}>
           <InfoRow label="Código de Identificação" value={animal?.codigoIdentificacao} />
@@ -182,34 +184,6 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.bold,
     fontSize: theme.typography.fontSize.xs,
   },
-  tabsRow: {
-    flexDirection: 'row',
-    marginBottom: theme.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderSoft,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    alignItems: 'center',
-  },
-  tabActive: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    alignItems: 'center',
-    borderBottomWidth: 3,
-    borderBottomColor: theme.colors.primary,
-  },
-  tabText: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-    fontWeight: theme.typography.fontWeight.semibold,
-  },
-  tabTextActive: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.primary,
-    fontWeight: theme.typography.fontWeight.bold,
-  },
   card: {
     backgroundColor: theme.colors.backgroundMuted,
     borderColor: theme.colors.border,
@@ -233,6 +207,9 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.bold,
     marginBottom: theme.spacing.md,
     color: theme.colors.textPrimary,
+  },
+  editButton: {
+    marginBottom: theme.spacing.md,
   },
   createEventButton: {
     marginBottom: theme.spacing.md,

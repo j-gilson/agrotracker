@@ -33,8 +33,8 @@ export const RegisterScreen: React.FC = () => {
     email.length > 0 && !email.includes('@') ? 'Digite um e-mail valido.' : undefined;
 
   const passwordError =
-    password.length > 0 && password.length < 6
-      ? 'A senha deve ter ao menos 6 caracteres.'
+    password.length > 0 && password.length < 8
+      ? 'A senha deve ter ao menos 8 caracteres.'
       : undefined;
 
   const confirmError =
@@ -45,8 +45,8 @@ export const RegisterScreen: React.FC = () => {
   const isFormValid =
     nome.trim().length > 0 &&
     email.trim().length > 0 &&
-    password.length >= 6 &&
-    confirmPassword.length >= 6 &&
+    password.length >= 8 &&
+    confirmPassword.length >= 8 &&
     password === confirmPassword &&
     !emailError &&
     !passwordError &&
@@ -100,7 +100,7 @@ export const RegisterScreen: React.FC = () => {
             error={passwordError}
             label="Senha"
             onChangeText={setPassword}
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mínimo 8 caracteres"
             returnKeyType="next"
             secureTextEntry
             value={password}

@@ -9,7 +9,6 @@ export const AppRoutes = {
   INVITES: '/invites' as const,
   INVENTARIO: '/inventario' as const,
   MANEJOS: '/manejos' as const,
-  SCANNER: '/scanner' as const,
   SCANNER_WITH_FAZENDA: (fazendaId?: string | null) => ({
     pathname: '/scanner' as const,
     params: fazendaId ? { fazendaId } : {},
@@ -31,6 +30,10 @@ export const AppRoutes = {
     pathname: '/animal/[id]' as const,
     params: { id },
   }),
+  EDIT_ANIMAL: (id: string | number) => ({
+    pathname: '/animal/[id]/edit' as const,
+    params: { id },
+  }),
 } as const;
 
 export type StaticAppRoute =
@@ -44,6 +47,5 @@ export type StaticAppRoute =
   | typeof AppRoutes.INVITES
   | typeof AppRoutes.INVENTARIO
   | typeof AppRoutes.MANEJOS
-  | typeof AppRoutes.SCANNER
   | typeof AppRoutes.CREATE_ANIMAL
   | typeof AppRoutes.ANIMAL_LIST;

@@ -53,6 +53,7 @@ export const useInvites = (refreshFarms: () => Promise<void>) => {
           current.filter((item) => item.id !== invite.id)
         );
       } catch (err: unknown) {
+        await refresh();
         throw new Error(
           humanizeError(err, 'Nao foi possivel aceitar o convite.')
         );
@@ -60,7 +61,7 @@ export const useInvites = (refreshFarms: () => Promise<void>) => {
         setProcessingId(null);
       }
     },
-    [acceptInvite, refreshFarms]
+    [acceptInvite, refresh, refreshFarms]
   );
 
   const reject = useCallback(

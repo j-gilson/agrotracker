@@ -23,7 +23,7 @@ export const HomeScreen: React.FC = () => {
     loading: farmsLoading,
     setActiveFarm,
   } = useActiveFarm();
-  const { stats, loading: statsLoading, error, refresh } = useHome(activeFarmId);
+  const { stats, loading: statsLoading, error, refresh } = useHome(activeFarmId, farms.length);
   const hasFocusedOnceRef = useRef(false);
 
   useFocusEffect(

@@ -6,9 +6,10 @@ export interface HomeStats {
 
 export const buildHomeStats = (
   animalCount: number,
-  eventCount: number
+  eventCount: number,
+  fazendaCount: number
 ): HomeStats => ({
   animais: animalCount,
   manejos: eventCount,
-  fazendas: 1,
+  fazendas: fazendaCount,
 });

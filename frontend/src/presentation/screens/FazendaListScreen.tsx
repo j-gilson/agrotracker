@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,23 +7,15 @@ import {
   RefreshControl,
   SafeAreaView,
 } from 'react-native';
-import { useFazendas } from '../viewmodels/useFazendas';
 import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
-import { router, useFocusEffect, type Href } from 'expo-router';
-import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
+import { router, type Href } from 'expo-router';
+import { Button, Card, EmptyState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
 
 export const FazendaListScreen: React.FC = () => {
-  const { fazendas, loading, error, refresh } = useFazendas();
-  const { setActiveFarm } = useActiveFarm();
-
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh])
-  );
+  const { farms: fazendas, loading, setActiveFarm, refreshFarms: refresh } = useActiveFarm();
 
   const handleFazendaPress = (fazendaId: string) => {
     router.push({
@@ -72,10 +64,6 @@ export const FazendaListScreen: React.FC = () => {
 
   if (loading && fazendas.length === 0) {
     return <Loading text="Carregando fazendas..." variant="list" />;
-  }
-
-  if (error && fazendas.length === 0) {
-    return <ErrorState message={error} onRetry={refresh} />;
   }
 
   return (

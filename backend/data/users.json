@@ -10,5 +10,17 @@
     ],
     "createdAt": "2026-06-11T02:18:46.381Z",
     "updatedAt": "2026-06-11T02:18:46.381Z"
+  },
+  {
+    "id": "3591b5fe-8804-4d37-88fe-d9e3bc6f9f25",
+    "nome": "Rodrigo",
+    "email": "tempo@email.com",
+    "passwordHash": "$2b$10$ThTCYbHpE661aXosbDpP/ednjFA/SOBova0L9mG0zIhAdIHRT.YKq",
+    "ativo": true,
+    "roles": [
+      "FUNCIONARIO"
+    ],
+    "createdAt": "2026-06-12T00:37:26.577Z",
+    "updatedAt": "2026-06-12T00:37:26.577Z"
   }
 ]
