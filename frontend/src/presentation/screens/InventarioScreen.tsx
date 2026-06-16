@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,14 +16,16 @@ import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { formatWeight } from '../../core/utils/formatWeight';
 import { maskUuid } from '../../core/utils/maskUuid';
+import { refreshOnReturn } from '../navigation/refreshOnReturn';
 
 export const InventarioScreen: React.FC = () => {
   const { activeFarmId, activeFarm, loading: farmsLoading } = useActiveFarm();
   const { animals, loading, error, refresh } = useInventario(activeFarmId);
+  const hasFocusedOnceRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
-      refresh();
+      refreshOnReturn(hasFocusedOnceRef, refresh);
     }, [refresh])
   );
 

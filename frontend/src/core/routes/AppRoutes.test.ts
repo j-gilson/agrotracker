@@ -84,6 +84,7 @@ describe('Sprint 6.2.4.2 — UX e Limpeza', () => {
   it('Cenario 7: Regressao — rotas principais continuam acessiveis', () => {
     expect(AppRoutes.AUTH).toBe('/auth');
     expect(AppRoutes.REGISTER).toBe('/auth/register');
+    expect(AppRoutes.PROFILE).toBe('/profile');
     expect(AppRoutes.FAZENDAS).toBe('/fazendas');
     expect(AppRoutes.CREATE_FAZENDA).toBe('/fazendas/create');
     expect(AppRoutes.FAZENDA_TEAM).toBe('/fazenda/team');

@@ -54,7 +54,14 @@ export const EditAnimalScreen: React.FC = () => {
     if (animalId) {
       router.replace(AppRoutes.ANIMAL_DETAIL(animalId));
     }
-  }, [success]);
+  }, [
+    animal?.codigoIdentificacao,
+    animal?.nome,
+    animalId,
+    resetState,
+    showSnackbar,
+    success,
+  ]);
 
   const racaError =
     raca.length > 0 && raca.trim().length < 2

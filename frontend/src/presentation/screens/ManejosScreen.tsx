@@ -52,6 +52,7 @@ export const ManejosScreen: React.FC = () => {
         <Text style={styles.obsText} numberOfLines={2}>
           💬 {item.description}
         </Text>
+        <Text style={styles.cardCta}>Ver Animal &gt;</Text>
       </View>
     </Card>
   );
@@ -177,6 +178,13 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontStyle: 'italic',
     marginTop: theme.spacing.xxs,
+  },
+  cardCta: {
+    marginTop: theme.spacing.sm,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textAccent,
+    textAlign: 'right',
   },
   fab: {
     position: 'absolute',

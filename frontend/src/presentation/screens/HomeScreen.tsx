@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useHome } from '../viewmodels/useHome';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
@@ -21,15 +21,20 @@ export const HomeScreen: React.FC = () => {
     activeFarmId,
     farms,
     loading: farmsLoading,
+    refreshFarms,
     setActiveFarm,
   } = useActiveFarm();
   const { stats, loading: statsLoading, error, refresh } = useHome(activeFarmId, farms.length);
   const hasFocusedOnceRef = useRef(false);
+  const refreshHome = useCallback(async () => {
+    await refreshFarms();
+    await refresh();
+  }, [refresh, refreshFarms]);
 
   useFocusEffect(
     useCallback(() => {
-      refreshOnReturn(hasFocusedOnceRef, refresh);
-    }, [refresh])
+      refreshOnReturn(hasFocusedOnceRef, refreshHome);
+    }, [refreshHome])
   );
 
   const handleScanPress = () => {
@@ -51,11 +56,52 @@ export const HomeScreen: React.FC = () => {
     router.push({ pathname: AppRoutes.CREATE_FAZENDA });
   };
 
-  const StatCard = ({ label, value }: { label: string; value: number }) => (
-    <Card marginBottom={0} padding={16} shadow={false} style={styles.statCard}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </Card>
+  const handleFazendasPress = () => {
+    router.push({ pathname: AppRoutes.FAZENDAS });
+  };
+
+  const ProfileAccess = () => (
+    <Button
+      fullWidth
+      onPress={() => router.push(AppRoutes.PROFILE as Href)}
+      style={styles.profileButton}
+      title="Meu Perfil"
+      variant="ghost"
+    />
+  );
+
+  const InvitesAccess = () => (
+    <Button
+      fullWidth
+      onPress={() => router.push(AppRoutes.INVITES as Href)}
+      style={styles.invitesButton}
+      title="Meus Convites"
+      variant="secondary"
+    />
+  );
+
+  const StatCard = ({
+    label,
+    value,
+    onPress,
+  }: {
+    label: string;
+    value: number;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity
+      accessibilityLabel={`${label}: ${value}. Abrir ${label}`}
+      accessibilityRole="button"
+      activeOpacity={0.8}
+      onPress={onPress}
+      style={styles.statCardPressable}
+    >
+      <Card marginBottom={0} padding={16} shadow={false} style={styles.statCard}>
+        <Text style={styles.statAffordance}>{'>'}</Text>
+        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statLabel}>{label}</Text>
+      </Card>
+    </TouchableOpacity>
   );
 
   const QuickActionCard = ({
@@ -80,7 +126,16 @@ export const HomeScreen: React.FC = () => {
   if (farms.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={farmsLoading || statsLoading}
+              onRefresh={refreshHome}
+              colors={[theme.colors.primary]}
+            />
+          }
+        >
           <View style={styles.header}>
             <Text style={styles.title}>Bem-vindo!</Text>
             <Text style={styles.subtitle}>
@@ -95,6 +150,8 @@ export const HomeScreen: React.FC = () => {
               onPress={handleNovaFazendaPress}
             />
           </Card>
+          <InvitesAccess />
+          <ProfileAccess />
         </ScrollView>
       </SafeAreaView>
     );
@@ -107,7 +164,7 @@ export const HomeScreen: React.FC = () => {
         refreshControl={
           <RefreshControl
             refreshing={statsLoading}
-            onRefresh={refresh}
+            onRefresh={refreshHome}
             colors={[theme.colors.primary]}
           />
         }
@@ -117,6 +174,7 @@ export const HomeScreen: React.FC = () => {
           <Text style={styles.subtitle}>
             Gerencie seu rebanho com facilidade.
           </Text>
+          <ProfileAccess />
         </View>
 
         <View style={styles.farmSelectorSection}>
@@ -166,9 +224,21 @@ export const HomeScreen: React.FC = () => {
           <ErrorState message={error} onRetry={refresh} />
         ) : (
           <View style={styles.statsRow}>
-            <StatCard label="Animais" value={stats.animais} />
-            <StatCard label="Manejos" value={stats.manejos} />
-            <StatCard label="Fazendas" value={stats.fazendas} />
+            <StatCard
+              label="Animais"
+              onPress={handleInventarioPress}
+              value={stats.animais}
+            />
+            <StatCard
+              label="Manejos"
+              onPress={handleManejosPress}
+              value={stats.manejos}
+            />
+            <StatCard
+              label="Fazendas"
+              onPress={handleFazendasPress}
+              value={stats.fazendas}
+            />
           </View>
         )}
 
@@ -268,12 +338,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: theme.spacing.lg,
   },
+  statCardPressable: {
+    flex: 1,
+    marginHorizontal: theme.spacing.xxs,
+  },
   statCard: {
     flex: 1,
     backgroundColor: theme.colors.successSoft,
     alignItems: 'center',
-    marginHorizontal: theme.spacing.xxs,
     borderColor: theme.colors.transparent,
+  },
+  statAffordance: {
+    position: 'absolute',
+    top: theme.spacing.xs,
+    right: theme.spacing.sm,
+    color: theme.colors.textAccent,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.bold,
   },
   statValue: {
     fontSize: theme.typography.fontSize.xxl,
@@ -315,5 +396,11 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     marginTop: theme.spacing.sm,
+  },
+  profileButton: {
+    marginTop: theme.spacing.md,
+  },
+  invitesButton: {
+    marginTop: theme.spacing.lg,
   },
 });

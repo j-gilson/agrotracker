@@ -1,26 +1,38 @@
 [
   {
-    "id": "3f2760fe-c224-4e4d-bb4b-be3bdf2159fc",
-    "nome": "gilson",
+    "id": "36050a1d-013d-4b69-b8c0-e47ae3c5a093",
+    "nome": "Gilsonreboucas",
     "email": "josegilsonaraujoreboucas@gmail.com",
-    "passwordHash": "$2b$10$iHcBwVQj5KSsnwwSyk1apOaRpEautofubhpBC9xHK2Hf89wEBrF2K",
+    "passwordHash": "$2b$10$0Zh4s.gLGGHR2PEwT1ENBuS58RhVNO5/jT3ag59J2m1GbEWyXDtRe",
     "ativo": true,
     "roles": [
       "FUNCIONARIO"
     ],
-    "createdAt": "2026-06-11T02:18:46.381Z",
-    "updatedAt": "2026-06-11T02:18:46.381Z"
+    "createdAt": "2026-06-15T22:53:19.006Z",
+    "updatedAt": "2026-06-15T22:53:19.006Z"
   },
   {
-    "id": "3591b5fe-8804-4d37-88fe-d9e3bc6f9f25",
-    "nome": "Rodrigo",
-    "email": "tempo@email.com",
-    "passwordHash": "$2b$10$ThTCYbHpE661aXosbDpP/ednjFA/SOBova0L9mG0zIhAdIHRT.YKq",
+    "id": "93be4083-d476-4af6-a021-c630c4015bcb",
+    "nome": "Zezinho",
+    "email": "meuemail@gmail.com",
+    "passwordHash": "$2b$10$jJv3ZbhFMFns3Qb.nO/4j.QWc8WuU2yPg.dOLIBcJ1xtTUcFsu1pS",
     "ativo": true,
     "roles": [
       "FUNCIONARIO"
     ],
-    "createdAt": "2026-06-12T00:37:26.577Z",
-    "updatedAt": "2026-06-12T00:37:26.577Z"
+    "createdAt": "2026-06-15T22:54:12.456Z",
+    "updatedAt": "2026-06-15T22:54:12.456Z"
+  },
+  {
+    "id": "daca4cc8-48fe-43fc-9427-d96f182f051a",
+    "nome": "Cicero",
+    "email": "cicero123cicero321@gmail.com",
+    "passwordHash": "$2b$10$6lMYQPgwIacqc/NQAXoBw.OVMCK3ZS3YKcfRrvZo93ax.MwgXUthS",
+    "ativo": true,
+    "roles": [
+      "FUNCIONARIO"
+    ],
+    "createdAt": "2026-06-16T00:06:25.648Z",
+    "updatedAt": "2026-06-16T00:06:25.648Z"
   }
 ]

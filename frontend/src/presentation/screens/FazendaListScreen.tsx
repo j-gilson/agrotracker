@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,22 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
-import { router, type Href } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { Button, Card, EmptyState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
+import { refreshOnReturn } from '../navigation/refreshOnReturn';
 
 export const FazendaListScreen: React.FC = () => {
   const { farms: fazendas, loading, setActiveFarm, refreshFarms: refresh } = useActiveFarm();
+  const hasFocusedOnceRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshOnReturn(hasFocusedOnceRef, refresh);
+    }, [refresh])
+  );
 
   const handleFazendaPress = (fazendaId: string) => {
     router.push({
@@ -41,6 +49,7 @@ export const FazendaListScreen: React.FC = () => {
         <View style={styles.cardContent}>
           <Text style={styles.fazendaLocation}>📍 {item.localizacao}</Text>
         </View>
+        <Text style={styles.cardCta}>Abrir Fazenda &gt;</Text>
       </Card>
       {item.id ? (
         <Button
@@ -173,5 +182,12 @@ const styles = StyleSheet.create({
   fazendaLocation: {
     fontSize: theme.typography.fontSize.sm + 1,
     color: theme.colors.textSecondary,
+  },
+  cardCta: {
+    marginTop: theme.spacing.sm,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textAccent,
+    textAlign: 'right',
   },
 });

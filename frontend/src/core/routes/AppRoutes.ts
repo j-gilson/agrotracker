@@ -2,6 +2,7 @@ export const AppRoutes = {
   HOME: '/' as const,
   AUTH: '/auth' as const,
   REGISTER: '/auth/register' as const,
+  PROFILE: '/profile' as const,
   FAZENDAS: '/fazendas' as const,
   CREATE_FAZENDA: '/fazendas/create' as const,
   FAZENDA_TEAM: '/fazenda/team' as const,
@@ -40,6 +41,7 @@ export type StaticAppRoute =
   | typeof AppRoutes.HOME
   | typeof AppRoutes.AUTH
   | typeof AppRoutes.REGISTER
+  | typeof AppRoutes.PROFILE
   | typeof AppRoutes.FAZENDAS
   | typeof AppRoutes.CREATE_FAZENDA
   | typeof AppRoutes.FAZENDA_TEAM

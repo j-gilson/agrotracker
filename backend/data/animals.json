@@ -1,24 +1,57 @@
 [
   {
-    "id": "f8b18b4b-3996-4a7c-a90e-37a7087589da",
-    "fazendaId": "b4ce8887-7eb6-4da3-adbf-2ed4019c565a",
-    "codigoIdentificacao": "0001",
-    "nome": "nv",
-    "raca": "nerole",
-    "peso": 500,
-    "dataNascimento": "2023-08-23T15:00:00.000Z",
+    "id": "0ecfcfab-3163-4b51-bd34-038f4ca99171",
+    "fazendaId": "2d73688e-f825-4a0b-ac18-8dbaaccb4a5a",
+    "codigoIdentificacao": "TESTE001",
+    "nome": "Boi Editado",
+    "raca": "Nerole",
+    "peso": 501,
+    "dataNascimento": "2023-03-12T15:00:00.000Z",
     "status": "ATIVO",
-    "dataCriacao": "2026-06-11T02:20:08.884Z"
+    "dataCriacao": "2026-06-15T23:03:08.347Z"
   },
   {
-    "id": "742fc8f8-f244-412a-af63-5e151d23a3a2",
-    "fazendaId": "b4ce8887-7eb6-4da3-adbf-2ed4019c565a",
-    "codigoIdentificacao": "0002",
-    "nome": "Julia",
-    "raca": "Geysi",
-    "peso": 608,
-    "dataNascimento": "2024-09-29T15:00:00.000Z",
+    "id": "8fafb4ef-8166-43ad-86ab-25a62905158d",
+    "fazendaId": "2d73688e-f825-4a0b-ac18-8dbaaccb4a5a",
+    "codigoIdentificacao": "SCAN001",
+    "nome": "Testando",
+    "raca": "Nerole",
+    "peso": 596,
+    "dataNascimento": "2022-04-09T15:00:00.000Z",
     "status": "ATIVO",
-    "dataCriacao": "2026-06-11T02:41:41.815Z"
+    "dataCriacao": "2026-06-15T23:08:01.903Z"
+  },
+  {
+    "id": "bba0c6c7-749f-432f-a4a1-df7604e18da1",
+    "fazendaId": "2d73688e-f825-4a0b-ac18-8dbaaccb4a5a",
+    "codigoIdentificacao": "NAOEXISTE001",
+    "nome": "Novo teste",
+    "raca": "Gi",
+    "peso": 420,
+    "dataNascimento": "2023-04-08T15:00:00.000Z",
+    "status": "ATIVO",
+    "dataCriacao": "2026-06-15T23:11:01.157Z"
+  },
+  {
+    "id": "7d17a2ee-bb76-4823-ac79-d2601a279656",
+    "fazendaId": "2d73688e-f825-4a0b-ac18-8dbaaccb4a5a",
+    "codigoIdentificacao": "SCAN002",
+    "nome": "Mimosa",
+    "raca": "Nerole",
+    "peso": 350,
+    "dataNascimento": "2021-07-09T15:00:00.000Z",
+    "status": "ATIVO",
+    "dataCriacao": "2026-06-15T23:12:57.246Z"
+  },
+  {
+    "id": "724cc47c-6519-45e9-a165-d664d71d5658",
+    "fazendaId": "2d73688e-f825-4a0b-ac18-8dbaaccb4a5a",
+    "codigoIdentificacao": "AJAKSKSK",
+    "nome": "Banana sn",
+    "raca": "boi",
+    "peso": 500,
+    "dataNascimento": "2021-12-31T15:00:00.000Z",
+    "status": "MORTO",
+    "dataCriacao": "2026-06-16T00:09:58.693Z"
   }
 ]

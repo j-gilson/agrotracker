@@ -1,0 +1,124 @@
+@startuml
+title AgroTracker MVP - Diagrama de Casos de Uso (Versão Homologada)
+
+left to right direction
+skinparam shadowing false
+skinparam backgroundColor white
+
+skinparam actor {
+    BorderColor #2E7D32
+    BackgroundColor #E8F5E9
+    FontColor #1B5E20
+}
+
+skinparam usecase {
+    BorderColor #2E7D32
+    BackgroundColor #F8FFF8
+    FontColor #243127
+}
+
+skinparam package {
+    BorderColor #81C784
+    BackgroundColor #F9FFF9
+}
+
+actor "Usuário Autenticado" as AuthUser
+actor Visitante
+actor "ADMIN" as Admin
+actor "FUNCIONÁRIO" as Func
+
+Admin --|> AuthUser
+Func --|> AuthUser
+
+rectangle "AgroTracker MVP" {
+
+    package "Autenticação" {
+        usecase "Cadastrar Conta" as UC_Register
+        usecase "Login" as UC_Login
+        usecase "Logout" as UC_Logout
+        usecase "Visualizar Perfil" as UC_Profile
+    }
+
+    package "Fazendas" {
+        usecase "Criar Fazenda" as UC_CreateFarm
+        usecase "Listar Fazendas" as UC_ListFarm
+        usecase "Selecionar Fazenda Ativa" as UC_ActiveFarm
+    }
+
+    package "Animais" {
+        usecase "Cadastrar Animal" as UC_CreateAnimal
+        usecase "Consultar Animal" as UC_ReadAnimal
+        usecase "Editar Animal" as UC_UpdateAnimal
+        usecase "Escanear QR Code" as UC_Scan
+    }
+
+    package "Eventos e Manejos" {
+        usecase "Registrar Evento" as UC_CreateEvent
+        usecase "Consultar Histórico do Animal" as UC_AnimalHistory
+        usecase "Consultar Manejos da Fazenda" as UC_FarmEvents
+    }
+
+    package "Convites" {
+        usecase "Listar Convites" as UC_ListInvites
+        usecase "Aceitar Convite" as UC_AcceptInvite
+        usecase "Recusar Convite" as UC_RejectInvite
+        usecase "Convidar Usuário" as UC_Invite
+    }
+
+    package "Equipe" {
+        usecase "Visualizar Equipe" as UC_Team
+        usecase "Alterar Papel" as UC_Role
+        usecase "Ativar/Desativar Membro" as UC_Toggle
+        usecase "Remover Membro" as UC_Remove
+    }
+}
+
+' ===== Usuário autenticado =====
+
+Visitante --> UC_Register
+Visitante --> UC_Login
+AuthUser --> UC_Logout
+AuthUser --> UC_Profile
+
+AuthUser --> UC_CreateFarm
+AuthUser --> UC_ListFarm
+AuthUser --> UC_ActiveFarm
+
+AuthUser --> UC_ReadAnimal
+AuthUser --> UC_Scan
+
+AuthUser --> UC_AnimalHistory
+AuthUser --> UC_FarmEvents
+
+AuthUser --> UC_ListInvites
+AuthUser --> UC_AcceptInvite
+AuthUser --> UC_RejectInvite
+
+AuthUser --> UC_Team
+
+' ===== ADMIN =====
+
+Admin --> UC_CreateAnimal
+Admin --> UC_UpdateAnimal
+Admin --> UC_CreateEvent
+
+Admin --> UC_Invite
+Admin --> UC_Role
+Admin --> UC_Toggle
+Admin --> UC_Remove
+
+' ===== FUNCIONÁRIO =====
+
+Func --> UC_CreateAnimal
+Func --> UC_UpdateAnimal
+Func --> UC_CreateEvent
+
+' ===== Relacionamentos =====
+
+UC_Scan ..> UC_ReadAnimal : <<include>>
+
+UC_Role ..> UC_Team : <<extend>>
+UC_Toggle ..> UC_Team : <<extend>>
+UC_Remove ..> UC_Team : <<extend>>
+
+@enduml

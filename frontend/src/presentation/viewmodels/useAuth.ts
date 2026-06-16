@@ -4,6 +4,22 @@ import { humanizeError } from '../../core/utils/humanizeError';
 import { useAuthSession } from '../contexts/AuthContext';
 import { useState } from 'react';
 
+type RegisterSession = (
+  nome: string,
+  email: string,
+  password: string
+) => Promise<unknown>;
+
+export const registerAndRedirectToLogin = async (
+  registerSession: RegisterSession,
+  input: { nome: string; email: string; password: string },
+  navigateToLogin: () => void = () =>
+    router.replace({ pathname: AppRoutes.AUTH })
+): Promise<void> => {
+  await registerSession(input.nome, input.email, input.password);
+  navigateToLogin();
+};
+
 export const useLoginViewModel = () => {
   const { login: loginSession } = useAuthSession();
   const [email, setEmail] = useState<string>('');
@@ -49,7 +65,7 @@ export const useLoginViewModel = () => {
 };
 
 export const useRegisterViewModel = () => {
-  const { register: registerSession, login: loginSession } = useAuthSession();
+  const { register: registerSession } = useAuthSession();
   const [nome, setNome] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -82,9 +98,11 @@ export const useRegisterViewModel = () => {
       setLoading(true);
       setError(null);
 
-      await registerSession(nome, email, password);
-      await loginSession(email, password);
-      router.replace({ pathname: AppRoutes.HOME });
+      await registerAndRedirectToLogin(registerSession, {
+        nome,
+        email,
+        password,
+      });
       return true;
     } catch (err: unknown) {
       setError(

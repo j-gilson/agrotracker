@@ -1,0 +1,169 @@
+@startuml
+title AgroTracker MVP - Diagrama de Classes de Domínio (Versão Homologada)
+
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+
+skinparam class {
+    BackgroundColor #F8FFF8
+    BorderColor #2E7D32
+    ArrowColor #1B5E20
+    FontColor #243127
+}
+
+skinparam enum {
+    BackgroundColor #E8F5E9
+    BorderColor #66BB6A
+    FontColor #1B5E20
+}
+
+' =========================
+' ENUMS
+' =========================
+
+enum StatusAnimal {
+  ATIVO
+  VENDIDO
+  MORTO
+}
+
+enum EventType {
+  VACINACAO
+  PESAGEM
+  MEDICACAO
+  INSEMINACAO
+  OUTRO
+}
+
+enum MemberRole {
+  ADMIN
+  FUNCIONARIO
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  RECUSADO
+  EXPIRED
+}
+
+' =========================
+' ENTIDADES
+' =========================
+
+class User {
+  + id : string
+  + nome : string
+  + email : string
+  + passwordHash : string
+  + ativo : boolean
+  + roles : string[]
+  + createdAt : Date
+  + updatedAt : Date
+
+  + withUpdatedAt(updatedAt: Date) : User
+}
+
+class Fazenda {
+  + id : string
+  + nome : string
+  + localizacao : string
+}
+
+note right of Fazenda
+ID gerado automaticamente
+na criação da entidade.
+end note
+
+class Animal {
+  + id : string
+  + fazendaId : string
+
+  + codigoIdentificacao : string
+  + nome : string?
+  + raca : string
+  + peso : number
+
+  + dataNascimento : Date
+  + status : StatusAnimal
+  + dataCriacao : Date
+
+  + idade : number
+}
+
+class Event {
+  + id : string
+
+  + animalId : string
+  + fazendaId : string
+
+  + type : EventType
+  + description : string
+
+  + date : Date
+
+  + createdBy : string
+  + createdAt : Date
+}
+
+class FazendaMember {
+  + id : string
+
+  + fazendaId : string
+  + userId : string
+
+  + role : MemberRole
+  + active : boolean
+
+  + createdAt : Date
+
+  + withRole(role: MemberRole) : FazendaMember
+  + withActive(active: boolean) : FazendaMember
+}
+
+class Invite {
+  + id : string
+
+  + fazendaId : string
+
+  + email : string
+  + role : MemberRole
+
+  + token : string
+  + status : InviteStatus
+
+  + createdAt : Date
+
+  + withStatus(status: InviteStatus) : Invite
+}
+
+' =========================
+' RELACIONAMENTOS
+' =========================
+
+Fazenda "1" o-- "0..*" Animal
+Animal "1" o-- "0..*" Event
+
+Fazenda "1" --> "0..*" Event
+
+User "1" --> "0..*" Event : createdBy
+
+User "1" -- "0..*" FazendaMember
+Fazenda "1" -- "0..*" FazendaMember
+
+Fazenda "1" o-- "0..*" Invite
+
+' =========================
+' ENUMS
+' =========================
+
+Animal --> StatusAnimal
+Event --> EventType
+
+FazendaMember --> MemberRole
+
+Invite --> MemberRole
+Invite --> InviteStatus
+
+@enduml

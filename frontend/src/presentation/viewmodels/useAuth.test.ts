@@ -1,6 +1,19 @@
 import { readFileSync } from 'fs';
 import path from 'path';
-import { describe, expect, it } from 'vitest';
+import { router } from 'expo-router';
+import { describe, expect, it, vi } from 'vitest';
+import { AppRoutes } from '../../core/routes/AppRoutes';
+import { registerAndRedirectToLogin } from './useAuth';
+
+vi.mock('expo-router', () => ({
+  router: {
+    replace: vi.fn(),
+  },
+}));
+
+vi.mock('../contexts/AuthContext', () => ({
+  useAuthSession: vi.fn(),
+}));
 
 const projectRoot = process.cwd();
 
@@ -21,6 +34,69 @@ describe('useRegisterViewModel — validacao de senha', () => {
   });
 });
 
+describe('useRegisterViewModel — fluxo pos-cadastro', () => {
+  it('cadastra e redireciona para o Login sem executar login automatico', async () => {
+    const registerSession = vi.fn().mockResolvedValue({ id: 'user-1' });
+
+    await registerAndRedirectToLogin(
+      registerSession,
+      {
+        nome: 'Maria',
+        email: 'maria@example.com',
+        password: '12345678',
+      }
+    );
+
+    expect(registerSession).toHaveBeenCalledWith(
+      'Maria',
+      'maria@example.com',
+      '12345678'
+    );
+    expect(router.replace).toHaveBeenCalledWith({
+      pathname: AppRoutes.AUTH,
+    });
+  });
+
+  it('propaga a falha do cadastro e permanece na tela atual', async () => {
+    const error = new Error('Email ja cadastrado.');
+    const registerSession = vi.fn().mockRejectedValue(error);
+    const navigateToLogin = vi.fn();
+
+    await expect(
+      registerAndRedirectToLogin(
+        registerSession,
+        {
+          nome: 'Maria',
+          email: 'maria@example.com',
+          password: '12345678',
+        },
+        navigateToLogin
+      )
+    ).rejects.toBe(error);
+
+    expect(navigateToLogin).not.toHaveBeenCalled();
+  });
+
+  it('nao cria sessao nem persiste token depois do cadastro', async () => {
+    const registerSession = vi.fn().mockResolvedValue({ id: 'user-1' });
+    const loginSession = vi.fn();
+    const sessionStoreSet = vi.fn();
+
+    await registerAndRedirectToLogin(
+      registerSession,
+      {
+        nome: 'Maria',
+        email: 'maria@example.com',
+        password: '12345678',
+      },
+      vi.fn()
+    );
+
+    expect(loginSession).not.toHaveBeenCalled();
+    expect(sessionStoreSet).not.toHaveBeenCalled();
+  });
+});
+
 describe('RegisterScreen — validacao de senha', () => {
   const filePath = path.resolve(projectRoot, 'src/presentation/screens/Auth/RegisterScreen.tsx');
   const content = readFileSync(filePath, 'utf-8');
@@ -36,6 +112,12 @@ describe('RegisterScreen — validacao de senha', () => {
     expect(content).toContain('password.length >= 8');
     expect(content).toContain('confirmPassword.length >= 8');
     expect(content).toContain('Mínimo 8 caracteres');
+  });
+
+  it('informa que o usuario deve fazer login depois do cadastro', () => {
+    expect(content).toContain(
+      'Conta criada com sucesso. Faça login para continuar.'
+    );
   });
 });
 

@@ -58,7 +58,7 @@ export const RegisterScreen: React.FC = () => {
     const success = await register();
     if (success) {
       showSnackbar({
-        message: 'Conta criada com sucesso.',
+        message: 'Conta criada com sucesso. Faça login para continuar.',
         variant: 'success',
       });
     }
