@@ -6,6 +6,8 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useManejos } from '../viewmodels/useManejos';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
@@ -16,6 +18,19 @@ import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { formatDate } from '../../core/utils/formatDate';
 import { refreshOnReturn } from '../navigation/refreshOnReturn';
+import { EVENT_TYPE_OPTIONS, EventType } from '../../domain/events/types';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
+
+const eventTypeLabels = EVENT_TYPE_OPTIONS.reduce<Record<EventType, string>>(
+  (labels, option) => ({
+    ...labels,
+    [option.value]: option.label,
+  }),
+  {} as Record<EventType, string>
+);
+
+const getEventTypeLabel = (type: EventType): string => eventTypeLabels[type];
 
 export const ManejosScreen: React.FC = () => {
   const { activeFarmId, activeFarm, loading: farmsLoading } = useActiveFarm();
@@ -36,7 +51,7 @@ export const ManejosScreen: React.FC = () => {
     >
       <View style={styles.cardHeader}>
         <View style={styles.typeBadge}>
-          <Text style={styles.typeText}>{item.type}</Text>
+          <Text style={styles.typeText}>{getEventTypeLabel(item.type)}</Text>
         </View>
         <Text style={styles.dateText}>
           {formatDate(item.date)}{' '}
@@ -48,11 +63,10 @@ export const ManejosScreen: React.FC = () => {
       </View>
 
       <View style={styles.cardContent}>
-        <Text style={styles.animalIdText}>Animal ID: {item.animalId}</Text>
         <Text style={styles.obsText} numberOfLines={2}>
-          💬 {item.description}
+          {item.description}
         </Text>
-        <Text style={styles.cardCta}>Ver Animal &gt;</Text>
+        <Text style={styles.cardCta}>Ver animal →</Text>
       </View>
     </Card>
   );
@@ -68,8 +82,28 @@ export const ManejosScreen: React.FC = () => {
     return <Loading text="Carregando..." />;
   }
 
+  if (!activeFarmId) {
+    return (
+      <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Manejos</Text>
+          <Text style={styles.subtitle}>Nenhuma fazenda ativa</Text>
+        </View>
+
+        <View style={styles.emptyStateContainer}>
+          <EmptyState
+            buttonText="Selecionar Fazenda"
+            onPress={() => router.push({ pathname: AppRoutes.FAZENDAS })}
+            subtitle="Selecione uma fazenda para visualizar e registrar manejos."
+            title="Nenhuma fazenda ativa"
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Manejos</Text>
         <Text style={styles.subtitle}>
@@ -104,12 +138,8 @@ export const ManejosScreen: React.FC = () => {
         onPress={() =>
           router.push(AppRoutes.SCANNER_WITH_FAZENDA(activeFarmId))
         }
-        disabled={!activeFarmId}
-        style={[
-          styles.fab,
-          !activeFarmId && styles.fabDisabled,
-        ]}
-        title={activeFarmId ? 'Novo Manejo' : 'Selecione Fazenda'}
+        style={styles.fab}
+        title="Escanear para Novo Manejo"
       />
     </SafeAreaView>
   );
@@ -135,6 +165,10 @@ const styles = StyleSheet.create({
   listContent: {
     padding: theme.spacing.md,
     paddingBottom: 100,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    padding: theme.spacing.lg,
   },
   card: {
     borderWidth: 1,
@@ -164,19 +198,9 @@ const styles = StyleSheet.create({
   cardContent: {
     gap: 4,
   },
-  animalIdText: {
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.xxs,
-  },
-  infoText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
-  },
   obsText: {
     fontSize: 13,
     color: theme.colors.textSecondary,
-    fontStyle: 'italic',
     marginTop: theme.spacing.xxs,
   },
   cardCta: {
@@ -196,8 +220,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-  },
-  fabDisabled: {
-    opacity: 0.6,
   },
 });

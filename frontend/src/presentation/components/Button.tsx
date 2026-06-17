@@ -21,6 +21,7 @@ interface ButtonProps {
   fullWidth?: boolean;
   icon?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
 }
 
 const palette = {
@@ -48,12 +49,14 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   icon,
   style,
+  accessibilityLabel,
 }) => {
   const isDisabled = disabled || loading;
   const showBorder = variant === 'secondary' || variant === 'ghost';
 
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}

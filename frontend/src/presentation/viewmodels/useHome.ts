@@ -3,8 +3,16 @@ import { GetAnimals } from '../../domain/usecases/animal/GetAnimals';
 import { AnimalRepositoryImpl } from '../../data/repositories/AnimalRepositoryImpl';
 import { GetEventsByFazenda } from '../../domain/events/usecases/GetEventsByFazenda';
 import { EventRepositoryImpl } from '../../data/events/repositories/EventRepositoryImpl';
+import { Event } from '../../domain/events/entities/Event';
 import { humanizeError } from '../../core/utils/humanizeError';
 import { buildHomeStats, HomeStats } from './homeStats';
+
+const LATEST_EVENTS_LIMIT = 3;
+
+export const selectLatestEvents = (events: Event[]): Event[] =>
+  [...events]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, LATEST_EVENTS_LIMIT);
 
 export const useHome = (activeFarmId: string | null, farmsCount: number) => {
   const [stats, setStats] = useState<HomeStats>({
@@ -12,6 +20,7 @@ export const useHome = (activeFarmId: string | null, farmsCount: number) => {
     manejos: 0,
     fazendas: 0,
   });
+  const [latestEvents, setLatestEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,8 +46,10 @@ export const useHome = (activeFarmId: string | null, farmsCount: number) => {
         ]);
 
         setStats(buildHomeStats(animals.length, events.length, farmsCount));
+        setLatestEvents(selectLatestEvents(events));
       } else {
         setStats({ animais: 0, manejos: 0, fazendas: farmsCount });
+        setLatestEvents([]);
       }
     } catch (err: unknown) {
       setError(
@@ -58,6 +69,7 @@ export const useHome = (activeFarmId: string | null, farmsCount: number) => {
 
   return {
     stats,
+    latestEvents,
     loading,
     error,
     refresh: fetchStats,

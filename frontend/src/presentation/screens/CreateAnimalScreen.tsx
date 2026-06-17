@@ -5,12 +5,16 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useCreateAnimal } from '../viewmodels/useCreateAnimal';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 const getParam = (value: string | string[] | undefined): string =>
   typeof value === 'string' ? value : Array.isArray(value) ? value[0] ?? '' : '';
@@ -106,7 +110,7 @@ export const CreateAnimalScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>Novo Animal</Text>

@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Platform, SafeAreaView, StatusBar, StyleSheet, Text } from 'react-native';
 import { router } from 'expo-router';
 import { Button, Card } from '../components';
 import { theme } from '../../core/theme';
 
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
+
 export const AccessDeniedScreen: React.FC<{ message?: string }> = ({ message }) => {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <Card padding={20} shadow style={styles.card}>
         <Text style={styles.title}>Acesso restrito</Text>
         <Text style={styles.subtitle}>
@@ -14,7 +16,7 @@ export const AccessDeniedScreen: React.FC<{ message?: string }> = ({ message }) 
         </Text>
         <Button fullWidth onPress={() => router.back()} title="Voltar" />
       </Card>
-    </View>
+    </SafeAreaView>
   );
 };
 

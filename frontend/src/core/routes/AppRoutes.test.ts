@@ -95,3 +95,14 @@ describe('Sprint 6.2.4.2 — UX e Limpeza', () => {
     expect(AppRoutes.CREATE_ANIMAL).toBe('/animal/create');
   });
 });
+
+describe('Sprint 7.4.4.7.1 — headers tecnicos do Expo Router', () => {
+  it('oculta o header global do Stack para nao exibir nomes internos de rota', () => {
+    const layoutPath = path.resolve(projectRoot, 'app/_layout.tsx');
+    const content = readFileSync(layoutPath, 'utf-8');
+
+    expect(content).toContain('<Stack screenOptions={{ headerShown: false }} />');
+    expect(content).toContain('<AuthGate>');
+    expect(content).toContain('<ActiveFarmProvider>');
+  });
+});

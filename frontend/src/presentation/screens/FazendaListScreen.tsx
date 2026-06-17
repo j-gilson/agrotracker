@@ -6,6 +6,8 @@ import {
   StyleSheet,
   RefreshControl,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
 import { router, useFocusEffect, type Href } from 'expo-router';
@@ -14,6 +16,8 @@ import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { refreshOnReturn } from '../navigation/refreshOnReturn';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 export const FazendaListScreen: React.FC = () => {
   const { farms: fazendas, loading, setActiveFarm, refreshFarms: refresh } = useActiveFarm();
@@ -76,7 +80,7 @@ export const FazendaListScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Minhas Fazendas</Text>
@@ -87,9 +91,10 @@ export const FazendaListScreen: React.FC = () => {
                   pathname: AppRoutes.INVITES,
                 } as unknown as Href)
               }
+              accessibilityLabel="Ver convites pendentes"
               style={styles.headerButton}
               title="Convites"
-              variant="ghost"
+              variant="secondary"
             />
             <Button
               onPress={() => router.push({ pathname: AppRoutes.CREATE_FAZENDA })}

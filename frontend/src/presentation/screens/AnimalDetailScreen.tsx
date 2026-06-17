@@ -7,20 +7,45 @@ import {
   Pressable,
   SafeAreaView,
   RefreshControl,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useAnimalDetail } from '../viewmodels/useAnimalDetail';
-import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+  type Href,
+} from 'expo-router';
 import { Card, EmptyState, ErrorState, Loading, Button } from '../components';
 import { theme } from '../../core/theme';
 import { formatDate } from '../../core/utils/formatDate';
 import { formatWeight } from '../../core/utils/formatWeight';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { refreshOnReturn } from '../navigation/refreshOnReturn';
+import { StatusAnimal } from '../../domain/entities/Animal';
+import { EVENT_TYPE_OPTIONS, EventType } from '../../domain/events/types';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
+
+const eventTypeLabels = EVENT_TYPE_OPTIONS.reduce<Record<EventType, string>>(
+  (labels, option) => ({
+    ...labels,
+    [option.value]: option.label,
+  }),
+  {} as Record<EventType, string>
+);
+
+const getEventTypeLabel = (type: EventType): string => eventTypeLabels[type];
 
 export const AnimalDetailScreen: React.FC = () => {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const animalId =
-    typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : '';
+    typeof params.id === 'string'
+      ? params.id
+      : Array.isArray(params.id)
+        ? params.id[0]
+        : '';
   const { animal, events, loading, error, refresh } = useAnimalDetail(animalId);
   const hasFocusedOnceRef = React.useRef(false);
 
@@ -30,10 +55,29 @@ export const AnimalDetailScreen: React.FC = () => {
     }, [refresh])
   );
 
-  const InfoRow = ({ label, value }: { label: string; value: string | number | null | undefined }) => (
+  const InfoRow = ({
+    label,
+    value,
+  }: {
+    label: string;
+    value: string | number | null | undefined;
+  }) => (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue}>{value || '-'}</Text>
+    </View>
+  );
+
+  const StatusBadge = ({ status }: { status: StatusAnimal }) => (
+    <View
+      style={[
+        styles.badge,
+        status === 'ATIVO' && styles.badgeAtivo,
+        status === 'VENDIDO' && styles.badgeVendido,
+        status === 'MORTO' && styles.badgeMorto,
+      ]}
+    >
+      <Text style={styles.badgeText}>{status}</Text>
     </View>
   );
 
@@ -50,19 +94,26 @@ export const AnimalDetailScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refresh} colors={[theme.colors.primary]} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refresh}
+            colors={[theme.colors.primary]}
+          />
         }
       >
         <View style={styles.headerRow}>
-          <View>
+          <View style={styles.headerContent}>
             <Text style={styles.title}>
               {animal?.nome || animal?.codigoIdentificacao || 'Animal'}
             </Text>
-            <Text style={styles.subtitle}>Ficha do animal</Text>
+            <Text style={styles.animalCode}>
+              {animal?.codigoIdentificacao ?? 'Código não informado'}
+            </Text>
+            {animal?.status ? <StatusBadge status={animal.status} /> : null}
           </View>
 
           <Pressable onPress={() => router.back()} style={styles.backButton}>
@@ -83,27 +134,36 @@ export const AnimalDetailScreen: React.FC = () => {
           />
         ) : null}
 
-        <Card marginBottom={24} shadow={false} style={styles.card}>
-          <InfoRow label="Código de Identificação" value={animal?.codigoIdentificacao} />
-          <InfoRow label="Status" value={animal?.status} />
+        <Card marginBottom={theme.spacing.xl} shadow={false} style={styles.card}>
           <InfoRow label="Raça" value={animal?.raca} />
           <InfoRow label="Peso Atual" value={formatWeight(animal?.peso)} />
           <InfoRow
             label="Idade"
             value={animal ? `${animal.idade} anos` : '-'}
           />
-          <InfoRow label="Nascimento" value={formatDate(animal?.dataNascimento)} />
-          <InfoRow label="Cadastrado em" value={formatDate(animal?.dataCriacao)} />
+          <InfoRow
+            label="Nascimento"
+            value={formatDate(animal?.dataNascimento)}
+          />
+          <InfoRow
+            label="Cadastrado em"
+            value={formatDate(animal?.dataCriacao)}
+          />
         </Card>
 
         <Text style={styles.sectionTitle}>Histórico de Manejos</Text>
 
         {animal?.fazendaId ? (
           <Button
-            title="Novo Manejo"
+            title="Registrar Manejo"
             variant="secondary"
             onPress={() =>
-              router.push(AppRoutes.CREATE_EVENT(animalId, animal.fazendaId) as unknown as Href)
+              router.push(
+                AppRoutes.CREATE_EVENT(
+                  animalId,
+                  animal.fazendaId
+                ) as unknown as Href
+              )
             }
             style={styles.createEventButton}
           />
@@ -123,8 +183,16 @@ export const AnimalDetailScreen: React.FC = () => {
               </View>
               <Card padding={12} style={styles.timelineCard}>
                 <View style={styles.timelineHeader}>
-                  <Text style={styles.timelineTitle}>{m.type}</Text>
-                  <Text style={styles.timelineDate}>{formatDate(m.date)} {m.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                  <Text style={styles.timelineTitle}>
+                    {getEventTypeLabel(m.type)}
+                  </Text>
+                  <Text style={styles.timelineDate}>
+                    {formatDate(m.date)}{' '}
+                    {m.date.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </Text>
                 </View>
                 <Text style={styles.timelineObs}>{m.description}</Text>
               </Card>
@@ -147,8 +215,12 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 24,
+  },
+  headerContent: {
+    flex: 1,
+    paddingRight: theme.spacing.md,
   },
   backButton: {
     paddingHorizontal: theme.spacing.sm,
@@ -166,11 +238,15 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.primaryDark,
   },
-  subtitle: {
-    fontSize: theme.typography.fontSize.md,
+  animalCode: {
     color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: theme.typography.fontWeight.semibold,
+    marginTop: theme.spacing.xxs,
+    marginBottom: theme.spacing.sm,
   },
   badge: {
+    alignSelf: 'flex-start',
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs - 2,
     borderRadius: theme.radius.pill,
@@ -178,6 +254,12 @@ const styles = StyleSheet.create({
   },
   badgeAtivo: {
     backgroundColor: theme.colors.primary,
+  },
+  badgeVendido: {
+    backgroundColor: theme.colors.warning,
+  },
+  badgeMorto: {
+    backgroundColor: theme.colors.danger,
   },
   badgeText: {
     color: theme.colors.textInverse,

@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { theme } from '../../core/theme';
 import { Button, Card, ErrorState, Input, RoleGuard, useSnackbar } from '../components';
 import { useInviteUser } from '../viewmodels/useInviteUser';
 import { MemberRole } from '../../domain/membership/types';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 const roleLabels: Record<MemberRole, string> = {
   ADMIN: 'Administrador',
@@ -56,7 +58,7 @@ const InviteUserContent: React.FC<{ fazendaId: string }> = ({ fazendaId }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, { paddingTop: SAFE_TOP }]}
     >
       <View style={styles.inner}>
         <View style={styles.header}>

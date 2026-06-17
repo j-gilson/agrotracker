@@ -6,6 +6,8 @@ import {
   ScrollView,
   SafeAreaView,
   Pressable,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useAnimalDetail } from '../viewmodels/useAnimalDetail';
 import { useUpdateAnimal } from '../viewmodels/useUpdateAnimal';
@@ -14,6 +16,8 @@ import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { StatusAnimal } from '../../domain/entities/Animal';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 const STATUS_OPTIONS: StatusAnimal[] = ['ATIVO', 'VENDIDO', 'MORTO'];
 
@@ -97,7 +101,7 @@ export const EditAnimalScreen: React.FC = () => {
 
   if (loadingDetail) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Carregando dados do animal...</Text>
         </View>
@@ -107,14 +111,14 @@ export const EditAnimalScreen: React.FC = () => {
 
   if (!animal) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
         <ErrorState message="Animal não encontrado." />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.headerRow}>
           <View>

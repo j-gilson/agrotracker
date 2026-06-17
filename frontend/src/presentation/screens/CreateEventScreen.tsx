@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { useCreateEvent } from '../viewmodels/useCreateEvent';
 import { EVENT_TYPE_OPTIONS, EventType } from '../../domain/events/types';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 export const CreateEventScreen: React.FC = () => {
   const params = useLocalSearchParams();
@@ -71,7 +73,7 @@ export const CreateEventScreen: React.FC = () => {
 
   if (!animalId || !fazendaId) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
         <View style={styles.content}>
           <ErrorState message="Parâmetro obrigatório não informado: animalId ou fazendaId." />
           <Button title="Voltar" onPress={() => router.back()} variant="secondary" />
@@ -81,7 +83,7 @@ export const CreateEventScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <Text style={styles.title}>Novo Manejo</Text>

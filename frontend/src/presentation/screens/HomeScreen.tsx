@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   RefreshControl,
   TouchableOpacity,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useHome } from '../viewmodels/useHome';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
@@ -15,6 +17,21 @@ import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { refreshOnReturn } from '../navigation/refreshOnReturn';
+import { Event } from '../../domain/events/entities/Event';
+import { EVENT_TYPE_OPTIONS, EventType } from '../../domain/events/types';
+import { formatDate } from '../../core/utils/formatDate';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
+
+const eventTypeLabels = EVENT_TYPE_OPTIONS.reduce<Record<EventType, string>>(
+  (labels, option) => ({
+    ...labels,
+    [option.value]: option.label,
+  }),
+  {} as Record<EventType, string>
+);
+
+const getEventTypeLabel = (type: EventType): string => eventTypeLabels[type];
 
 export const HomeScreen: React.FC = () => {
   const {
@@ -22,10 +39,13 @@ export const HomeScreen: React.FC = () => {
     farms,
     loading: farmsLoading,
     refreshFarms,
-    setActiveFarm,
   } = useActiveFarm();
-  const { stats, loading: statsLoading, error, refresh } = useHome(activeFarmId, farms.length);
+  const { stats, latestEvents, loading: statsLoading, error, refresh } = useHome(
+    activeFarmId,
+    farms.length
+  );
   const hasFocusedOnceRef = useRef(false);
+  const activeFarm = farms.find((farm) => farm.id === activeFarmId) ?? farms[0];
   const refreshHome = useCallback(async () => {
     await refreshFarms();
     await refresh();
@@ -56,6 +76,13 @@ export const HomeScreen: React.FC = () => {
     router.push({ pathname: AppRoutes.CREATE_FAZENDA });
   };
 
+  const handleCadastrarAnimalPress = () => {
+    router.push({
+      pathname: AppRoutes.CREATE_ANIMAL,
+      params: activeFarmId ? { fazendaId: activeFarmId } : {},
+    });
+  };
+
   const handleFazendasPress = () => {
     router.push({ pathname: AppRoutes.FAZENDAS });
   };
@@ -68,6 +95,18 @@ export const HomeScreen: React.FC = () => {
       title="Meu Perfil"
       variant="ghost"
     />
+  );
+
+  const CompactProfileAccess = () => (
+    <TouchableOpacity
+      accessibilityLabel="Abrir Meu Perfil"
+      accessibilityRole="button"
+      activeOpacity={0.75}
+      onPress={() => router.push(AppRoutes.PROFILE as Href)}
+      style={styles.compactProfileButton}
+    >
+      <Text style={styles.compactProfileText}>Perfil</Text>
+    </TouchableOpacity>
   );
 
   const InvitesAccess = () => (
@@ -84,10 +123,12 @@ export const HomeScreen: React.FC = () => {
     label,
     value,
     onPress,
+    actionLabel,
   }: {
     label: string;
     value: number;
     onPress: () => void;
+    actionLabel: string;
   }) => (
     <TouchableOpacity
       accessibilityLabel={`${label}: ${value}. Abrir ${label}`}
@@ -96,10 +137,15 @@ export const HomeScreen: React.FC = () => {
       onPress={onPress}
       style={styles.statCardPressable}
     >
-      <Card marginBottom={0} padding={16} shadow={false} style={styles.statCard}>
-        <Text style={styles.statAffordance}>{'>'}</Text>
+      <Card
+        marginBottom={0}
+        padding={16}
+        shadow={false}
+        style={styles.statCard}
+      >
         <Text style={styles.statValue}>{value}</Text>
         <Text style={styles.statLabel}>{label}</Text>
+        <Text style={styles.statAffordance}>{actionLabel}</Text>
       </Card>
     </TouchableOpacity>
   );
@@ -113,10 +159,64 @@ export const HomeScreen: React.FC = () => {
     onPress: () => void;
     icon: string;
   }) => (
-    <Card marginBottom={0} onPress={onPress} padding={20} style={styles.quickActionCard}>
+    <Card
+      marginBottom={0}
+      onPress={onPress}
+      padding={20}
+      style={styles.quickActionCard}
+    >
       <Text style={styles.quickActionIcon}>{icon}</Text>
       <Text style={styles.quickActionLabel}>{label}</Text>
+      <Text style={styles.quickActionCta}>→</Text>
     </Card>
+  );
+
+  const LatestEventCard = ({ event }: { event: Event }) => (
+    <Card
+      marginBottom={theme.spacing.sm}
+      padding={14}
+      shadow={false}
+      style={styles.latestEventCard}
+    >
+      <View style={styles.latestEventHeader}>
+        <Text style={styles.latestEventType}>
+          {getEventTypeLabel(event.type)}
+        </Text>
+        <Text style={styles.latestEventDate}>{formatDate(event.date)}</Text>
+      </View>
+      <Text numberOfLines={2} style={styles.latestEventDescription}>
+        {event.description}
+      </Text>
+    </Card>
+  );
+
+  const LatestEventsSection = () => (
+    <View style={styles.latestEventsSection}>
+      <Text style={styles.sectionTitle}>Últimos Manejos</Text>
+      {latestEvents.length === 0 ? (
+        <Card padding={16} shadow={false} style={styles.latestEventsEmptyCard}>
+          <Text style={styles.latestEventsEmptyText}>
+            Nenhum manejo registrado ainda.
+          </Text>
+        </Card>
+      ) : (
+        latestEvents.map((event, index) => (
+          <LatestEventCard
+            key={event.id ?? `latest-event-${index}`}
+            event={event}
+          />
+        ))
+      )}
+      <TouchableOpacity
+        accessibilityLabel="Ver todos os manejos"
+        accessibilityRole="button"
+        activeOpacity={0.75}
+        onPress={handleManejosPress}
+        style={styles.latestEventsCta}
+      >
+        <Text style={styles.latestEventsCtaText}>Ver todos os manejos →</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   if (farmsLoading) {
@@ -125,7 +225,7 @@ export const HomeScreen: React.FC = () => {
 
   if (farms.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           refreshControl={
@@ -158,7 +258,7 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -169,56 +269,42 @@ export const HomeScreen: React.FC = () => {
           />
         }
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Olá!</Text>
-          <Text style={styles.subtitle}>
-            Gerencie seu rebanho com facilidade.
-          </Text>
-          <ProfileAccess />
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Olá!</Text>
+            <Text style={styles.subtitle}>
+              Gerencie seu rebanho com facilidade.
+            </Text>
+          </View>
+          <CompactProfileAccess />
         </View>
 
         <View style={styles.farmSelectorSection}>
-          <Text style={styles.farmSelectorLabel}>Fazenda Ativa</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.farmChipsContainer}
+          <Card
+            marginBottom={0}
+            padding={16}
+            shadow={false}
+            style={styles.activeFarmCard}
           >
-            {farms.map((farm, index) => {
-              const isActive = farm.id === activeFarmId;
-              return (
-                <TouchableOpacity
-                  key={farm.id ?? `farm-${index}`}
-                  onPress={() => {
-                    if (farm.id) setActiveFarm(farm.id);
-                  }}
-                  style={[
-                    styles.farmChip,
-                    isActive && styles.farmChipActive,
-                  ]}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.farmChipText,
-                      isActive && styles.farmChipTextActive,
-                    ]}
-                  >
-                    {farm.nome}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+            <View style={styles.activeFarmHeader}>
+              <View style={styles.activeFarmTextGroup}>
+                <Text style={styles.farmSelectorLabel}>Fazenda Ativa</Text>
+                <Text style={styles.activeFarmName}>
+                  {activeFarm?.nome ?? 'Nenhuma fazenda ativa'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                accessibilityLabel="Trocar Fazenda"
+                accessibilityRole="button"
+                activeOpacity={0.75}
+                onPress={handleFazendasPress}
+                style={styles.changeFarmButton}
+              >
+                <Text style={styles.changeFarmText}>Trocar Fazenda</Text>
+              </TouchableOpacity>
+            </View>
+          </Card>
         </View>
-
-        <Button
-          fullWidth
-          icon={<Text style={styles.scanButtonIcon}>📸</Text>}
-          style={styles.scanButton}
-          onPress={handleScanPress}
-          title="Escanear Novo Brinco"
-        />
 
         {error ? (
           <ErrorState message={error} onRetry={refresh} />
@@ -228,31 +314,44 @@ export const HomeScreen: React.FC = () => {
               label="Animais"
               onPress={handleInventarioPress}
               value={stats.animais}
+              actionLabel="Ver Inventário →"
             />
             <StatCard
               label="Manejos"
               onPress={handleManejosPress}
               value={stats.manejos}
+              actionLabel="Ver Manejos →"
             />
             <StatCard
               label="Fazendas"
               onPress={handleFazendasPress}
               value={stats.fazendas}
+              actionLabel="Gerenciar →"
             />
           </View>
         )}
 
+        <Button
+          fullWidth
+          icon={<Text style={styles.scanButtonIcon}>📸</Text>}
+          style={styles.scanButton}
+          onPress={handleScanPress}
+          title="Escanear Novo Brinco"
+        />
+
+        <LatestEventsSection />
+
         <Text style={styles.sectionTitle}>Ações Rápidas</Text>
-        <View style={styles.quickActionsRow}>
+        <View style={styles.quickActionsList}>
           <QuickActionCard
-            label="Inventário"
-            onPress={handleInventarioPress}
-            icon="📋"
+            label="Cadastrar Animal"
+            onPress={handleCadastrarAnimalPress}
+            icon="➕"
           />
           <QuickActionCard
-            label="Manejos"
-            onPress={handleManejosPress}
-            icon="📝"
+            label="Registrar Manejo"
+            onPress={handleScanPress}
+            icon="📷"
           />
           <QuickActionCard
             label="Nova Fazenda"
@@ -260,14 +359,6 @@ export const HomeScreen: React.FC = () => {
             icon="🚜"
           />
         </View>
-
-        <Button
-          fullWidth
-          onPress={() => router.push({ pathname: AppRoutes.FAZENDAS })}
-          style={styles.secondaryButton}
-          title="Ver Todas as Fazendas"
-          variant="secondary"
-        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -284,6 +375,16 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: theme.spacing.xl,
   },
+  headerRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.xl,
+  },
+  headerText: {
+    flex: 1,
+    paddingRight: theme.spacing.md,
+  },
   title: {
     fontSize: theme.typography.fontSize.display,
     fontWeight: theme.typography.fontWeight.bold,
@@ -294,38 +395,58 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.xxs,
   },
+  compactProfileButton: {
+    alignItems: 'center',
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: theme.sizes.chipHeight,
+    paddingHorizontal: theme.spacing.md,
+  },
+  compactProfileText: {
+    color: theme.colors.textAccent,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+  },
   farmSelectorSection: {
     marginBottom: theme.spacing.lg,
+  },
+  activeFarmCard: {
+    backgroundColor: theme.colors.backgroundSubtle,
+  },
+  activeFarmHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  activeFarmTextGroup: {
+    flex: 1,
+    paddingRight: theme.spacing.md,
   },
   farmSelectorLabel: {
     fontSize: theme.typography.fontSize.sm,
     fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xxs,
   },
-  farmChipsContainer: {
-    gap: theme.spacing.sm,
+  activeFarmName: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
   },
-  farmChip: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+  changeFarmButton: {
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.pill,
-    backgroundColor: theme.colors.backgroundMuted,
-    marginRight: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: theme.colors.borderSoft,
+    minHeight: theme.sizes.chipHeight,
+    paddingHorizontal: theme.spacing.md,
+    justifyContent: 'center',
   },
-  farmChipActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  farmChipText: {
+  changeFarmText: {
+    color: theme.colors.textAccent,
     fontSize: theme.typography.fontSize.sm,
     fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textSecondary,
-  },
-  farmChipTextActive: {
-    color: theme.colors.textInverse,
   },
   scanButton: {
     marginBottom: theme.spacing.xl,
@@ -347,14 +468,15 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.successSoft,
     alignItems: 'center',
     borderColor: theme.colors.transparent,
+    minHeight: 116,
+    justifyContent: 'center',
   },
   statAffordance: {
-    position: 'absolute',
-    top: theme.spacing.xs,
-    right: theme.spacing.sm,
     color: theme.colors.textAccent,
-    fontSize: theme.typography.fontSize.sm,
+    fontSize: theme.typography.fontSize.xs,
     fontWeight: theme.typography.fontWeight.bold,
+    marginTop: theme.spacing.sm,
+    textAlign: 'center',
   },
   statValue: {
     fontSize: theme.typography.fontSize.xxl,
@@ -373,29 +495,76 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     color: theme.colors.textPrimary,
   },
-  quickActionsRow: {
+  latestEventsSection: {
+    marginBottom: theme.spacing.xl,
+  },
+  latestEventCard: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.borderSoft,
+  },
+  latestEventHeader: {
+    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginBottom: theme.spacing.xs,
+  },
+  latestEventType: {
+    color: theme.colors.primary,
+    flex: 1,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.bold,
+    paddingRight: theme.spacing.sm,
+  },
+  latestEventDate: {
+    color: theme.colors.textMuted,
+    fontSize: theme.typography.fontSize.xs,
+  },
+  latestEventDescription: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+    lineHeight: theme.typography.lineHeight.sm,
+  },
+  latestEventsEmptyCard: {
+    backgroundColor: theme.colors.surfaceAlt,
+    borderColor: theme.colors.borderSoft,
+  },
+  latestEventsEmptyText: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+  },
+  latestEventsCta: {
+    alignSelf: 'flex-end',
+    minHeight: theme.sizes.chipHeight,
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.xs,
+  },
+  latestEventsCtaText: {
+    color: theme.colors.textAccent,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.bold,
+  },
+  quickActionsList: {
+    gap: theme.spacing.sm,
     marginBottom: theme.spacing.lg,
   },
   quickActionCard: {
-    flex: 1,
-    minWidth: 96,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: theme.spacing.xs - 2,
   },
   quickActionIcon: {
     fontSize: theme.sizes.iconMd,
-    marginBottom: theme.spacing.xs,
+    marginRight: theme.spacing.sm,
   },
   quickActionLabel: {
     fontSize: theme.typography.fontSize.sm,
     fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.textPrimary,
+    flex: 1,
   },
-  secondaryButton: {
-    marginTop: theme.spacing.sm,
+  quickActionCta: {
+    color: theme.colors.textAccent,
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: theme.typography.fontWeight.bold,
   },
   profileButton: {
     marginTop: theme.spacing.md,

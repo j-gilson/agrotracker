@@ -60,7 +60,7 @@ describe('Sprint 7.4.3.2.3 — CTA explicito em cards navegaveis', () => {
     const content = readScreen('ManejosScreen.tsx');
 
     expect(content).toContain('router.push(AppRoutes.ANIMAL_DETAIL(item.animalId))');
-    expect(content).toContain('Ver Animal &gt;');
+    expect(content).toContain('Ver animal →');
     expect(content).toContain('styles.cardCta');
   });
 });

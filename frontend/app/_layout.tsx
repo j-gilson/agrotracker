@@ -42,7 +42,7 @@ export default function Layout() {
         <ActiveFarmProvider>
           <SnackbarProvider>
             <AuthGate>
-              <Stack />
+              <Stack screenOptions={{ headerShown: false }} />
             </AuthGate>
           </SnackbarProvider>
         </ActiveFarmProvider>

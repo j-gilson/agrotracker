@@ -7,6 +7,8 @@ import {
   StyleSheet,
   RefreshControl,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useAnimals } from '../viewmodels/useAnimals';
 import { Animal } from '../../domain/entities/Animal';
@@ -14,6 +16,8 @@ import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { usePermissions } from '../../core/auth/usePermissions';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 export const AnimalListScreen: React.FC = () => {
   const { fazendaId } = useLocalSearchParams();
@@ -78,7 +82,7 @@ export const AnimalListScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Meu Rebanho</Text>
@@ -91,9 +95,10 @@ export const AnimalListScreen: React.FC = () => {
                     params: { fazendaId: fazendaIdValue },
                   } as unknown as Href)
                 }
+                accessibilityLabel="Gerenciar equipe da fazenda"
                 style={styles.teamButton}
                 title="Equipe"
-                variant="ghost"
+                variant="secondary"
               />
             ) : null}
             <Button
@@ -159,7 +164,6 @@ const styles = StyleSheet.create({
   teamButton: {
     minHeight: 40,
     paddingHorizontal: 14,
-    borderColor: theme.colors.overlaySoft,
   },
   addButton: {
     minHeight: 40,

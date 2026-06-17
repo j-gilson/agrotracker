@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View, Platform, StatusBar } from 'react-native';
 import { CameraView } from 'expo-camera';
 import {
   useFocusEffect,
@@ -17,6 +17,8 @@ import {
 import { useScanner } from '../viewmodels/useScanner';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { theme } from '../../core/theme';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 const { colors, radius, spacing, typography } = theme;
 
@@ -103,6 +105,7 @@ export function ScannerScreen() {
   const canScan = status === 'aguardando';
 
   return (
+    <SafeAreaView style={[styles.safeContainer, { paddingTop: SAFE_TOP }]}>
     <ScrollView
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
@@ -192,10 +195,15 @@ export function ScannerScreen() {
         />
       ) : null}
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     flexGrow: 1,
     padding: spacing.lg,

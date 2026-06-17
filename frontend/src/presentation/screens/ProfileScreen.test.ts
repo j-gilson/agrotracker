@@ -3,7 +3,12 @@ import path from 'path';
 import { router } from 'expo-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../../core/routes/AppRoutes';
-import { confirmLogout, executeLogout, navigateToInvites } from './ProfileScreen';
+import {
+  confirmLogout,
+  executeLogout,
+  getUserInitials,
+  navigateToInvites,
+} from './ProfileScreen';
 
 vi.mock('expo-router', () => ({
   router: {
@@ -14,6 +19,13 @@ vi.mock('expo-router', () => ({
 vi.mock('react-native', () => ({
   Alert: {
     alert: vi.fn(),
+  },
+  Platform: {
+    OS: 'ios',
+    select: <T,>(obj: Record<string, T>) => obj.default ?? null,
+  },
+  StatusBar: {
+    currentHeight: 24,
   },
   SafeAreaView: 'SafeAreaView',
   Text: 'Text',
@@ -67,6 +79,7 @@ describe('Sprint 7.3.2.2 — Perfil e Logout', () => {
     expect(content).toContain('useAuthSession()');
     expect(content).toContain('user?.nome');
     expect(content).toContain('user?.email');
+    expect(content).toContain('Gerencie sua conta e acesso');
   });
 
   it('Cenario 4: botao Convites navega para AppRoutes.INVITES', () => {
@@ -74,7 +87,7 @@ describe('Sprint 7.3.2.2 — Perfil e Logout', () => {
 
     navigateToInvites();
 
-    expect(content).toContain('title="Meus Convites"');
+    expect(content).toContain('title="Meus Convites →"');
     expect(router.push).toHaveBeenCalledWith({
       pathname: AppRoutes.INVITES,
     });
@@ -94,10 +107,43 @@ describe('Sprint 7.3.2.2 — Perfil e Logout', () => {
   it('Cenario 6: acesso ao Perfil existe com e sem fazendas', () => {
     const content = readFileSync(homeScreenPath, 'utf-8');
     const profileAccessCount = content.split('<ProfileAccess />').length - 1;
+    const compactProfileAccessCount =
+      content.split('<CompactProfileAccess />').length - 1;
 
     expect(content).toContain('if (farms.length === 0)');
     expect(content).toContain('router.push(AppRoutes.PROFILE as Href)');
-    expect(profileAccessCount).toBe(2);
+    expect(profileAccessCount).toBe(1);
+    expect(compactProfileAccessCount).toBe(1);
+  });
+});
+
+describe('Sprint 7.4.4.3 — melhorias UX do Perfil', () => {
+  it('gera iniciais a partir do nome do usuario', () => {
+    expect(getUserInitials('José Gilson')).toBe('JG');
+    expect(getUserInitials('Maria')).toBe('M');
+    expect(getUserInitials('  Ana Paula Souza  ')).toBe('AP');
+    expect(getUserInitials(null)).toBe('--');
+  });
+
+  it('organiza bloco de identidade com avatar, nome e email', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain('styles.identityCard');
+    expect(content).toContain('styles.avatar');
+    expect(content).toContain('styles.avatarText');
+    expect(content).toContain('getUserInitials(user?.nome)');
+    expect(content).toContain('styles.userName');
+    expect(content).toContain('styles.userEmail');
+  });
+
+  it('separa acoes em CONTA e SESSAO sem alterar os fluxos', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain('CONTA');
+    expect(content).toContain('SESSÃO');
+    expect(content).toContain('navigateToInvites()');
+    expect(content).toContain('confirmLogout(logout)');
+    expect(content).toContain('variant="danger"');
   });
 });
 

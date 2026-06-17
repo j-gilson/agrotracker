@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { useCreateFazenda } from '../viewmodels/useCreateFazenda';
@@ -12,6 +14,8 @@ import { router } from 'expo-router';
 import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 export const CreateFazendaScreen: React.FC = () => {
   const [nome, setNome] = useState('');
@@ -68,7 +72,7 @@ export const CreateFazendaScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>Nova Fazenda</Text>

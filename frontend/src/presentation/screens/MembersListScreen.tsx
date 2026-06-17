@@ -6,6 +6,8 @@ import {
   StyleSheet,
   RefreshControl,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FazendaMember } from '../../domain/membership/entities/FazendaMember';
@@ -13,6 +15,8 @@ import { MemberRole } from '../../domain/membership/types';
 import { theme } from '../../core/theme';
 import { Button, Card, EmptyState, ErrorState, Loading, useSnackbar } from '../components';
 import { useTeamManagement } from '../viewmodels/useTeamManagement';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }) => {
   const { members, loading, error, refresh, changeRole, toggleActive, remove, currentMember } =
@@ -135,7 +139,7 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <FlatList
         data={members}
         keyExtractor={(item, index) => item.id ?? index.toString()}

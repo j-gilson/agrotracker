@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { RoleGuard, Button, ErrorState } from '../components';
 import { MembersListScreen } from './MembersListScreen';
 import { usePermissions } from '../../core/auth/usePermissions';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 export const TeamManagementScreen: React.FC = () => {
   const params = useLocalSearchParams<{ fazendaId?: string | string[] }>();
@@ -23,7 +25,7 @@ export const TeamManagementScreen: React.FC = () => {
 
   return (
     <RoleGuard fazendaId={id} roles={['ADMIN', 'FUNCIONARIO']}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <Text style={styles.title}>Equipe</Text>

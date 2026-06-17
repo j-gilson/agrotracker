@@ -6,6 +6,8 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useInventario } from '../viewmodels/useInventario';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
@@ -17,6 +19,8 @@ import { AppRoutes } from '../../core/routes/AppRoutes';
 import { formatWeight } from '../../core/utils/formatWeight';
 import { maskUuid } from '../../core/utils/maskUuid';
 import { refreshOnReturn } from '../navigation/refreshOnReturn';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 export const InventarioScreen: React.FC = () => {
   const { activeFarmId, activeFarm, loading: farmsLoading } = useActiveFarm();
@@ -88,7 +92,7 @@ export const InventarioScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Inventário</Text>
         <Text style={styles.subtitle}>

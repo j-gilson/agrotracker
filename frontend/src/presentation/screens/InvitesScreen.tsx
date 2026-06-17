@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Text,
   View,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Invite } from '../../domain/membership/entities/Invite';
@@ -20,6 +22,8 @@ import {
 } from '../components';
 import { useInvites } from '../viewmodels/useInvites';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
+
+const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
 const roleLabels = {
   ADMIN: 'Administrador',
@@ -138,7 +142,7 @@ export const InvitesScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Meus Convites</Text>
         <Text style={styles.subtitle}>
