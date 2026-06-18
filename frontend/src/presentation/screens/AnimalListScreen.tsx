@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useAnimals } from '../viewmodels/useAnimals';
 import { Animal } from '../../domain/entities/Animal';
-import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
+import { Button, Card, EmptyState, ErrorState, Loading, PageHeader } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { usePermissions } from '../../core/auth/usePermissions';
@@ -83,9 +83,10 @@ export const AnimalListScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.title}>Meu Rebanho</Text>
+      <PageHeader
+        title="Meu Rebanho"
+        variant="banner"
+        rightAction={
           <View style={styles.headerActions}>
             {canViewMembers ? (
               <Button
@@ -113,8 +114,8 @@ export const AnimalListScreen: React.FC = () => {
               variant="secondary"
             />
           </View>
-        </View>
-      </View>
+        }
+      />
 
       <FlatList
         data={animals}
@@ -139,27 +140,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
   },
-  header: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.primary,
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
-    marginBottom: theme.spacing.sm - 2,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.xxl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textInverse,
   },
   teamButton: {
     minHeight: 40,

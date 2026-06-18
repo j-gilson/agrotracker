@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
-import { RoleGuard, Button, ErrorState } from '../components';
+import { RoleGuard, Button, ErrorState, PageHeader } from '../components';
 import { MembersListScreen } from './MembersListScreen';
 import { usePermissions } from '../../core/auth/usePermissions';
 
@@ -26,10 +26,11 @@ export const TeamManagementScreen: React.FC = () => {
   return (
     <RoleGuard fazendaId={id} roles={['ADMIN', 'FUNCIONARIO']}>
       <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-        <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <Text style={styles.title}>Equipe</Text>
-            {canInviteMembers ? (
+        <PageHeader
+          title="Equipe"
+          variant="banner"
+          rightAction={
+            canInviteMembers ? (
               <Button
                 onPress={() =>
                   router.push({
@@ -41,9 +42,9 @@ export const TeamManagementScreen: React.FC = () => {
                 variant="secondary"
                 style={styles.inviteButton}
               />
-            ) : null}
-          </View>
-        </View>
+            ) : undefined
+          }
+        />
 
         <MembersListScreen fazendaId={id} />
       </SafeAreaView>
@@ -55,23 +56,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
-  },
-  header: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.primary,
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
-    marginBottom: theme.spacing.sm - 2,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: theme.typography.fontSize.xxl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textInverse,
   },
   inviteButton: {
     minHeight: 40,

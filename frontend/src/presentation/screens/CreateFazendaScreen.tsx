@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
   StyleSheet,
   ScrollView,
   SafeAreaView,
@@ -11,7 +9,7 @@ import {
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { useCreateFazenda } from '../viewmodels/useCreateFazenda';
 import { router } from 'expo-router';
-import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
+import { Button, Card, ErrorState, Input, PageHeader, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 
@@ -74,10 +72,10 @@ export const CreateFazendaScreen: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Nova Fazenda</Text>
-          <Text style={styles.subtitle}>Registre uma nova propriedade rural</Text>
-        </View>
+        <PageHeader
+          title="Nova Fazenda"
+          subtitle="Registre uma nova propriedade rural"
+        />
 
         <Card padding={20} shadow style={styles.form}>
           <Input
@@ -121,19 +119,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     padding: theme.spacing.lg,
-  },
-  header: {
-    marginBottom: theme.spacing.xl + theme.spacing.xs,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.display,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primary,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs - 3,
   },
   form: {
     elevation: 4,

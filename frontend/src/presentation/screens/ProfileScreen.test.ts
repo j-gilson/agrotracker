@@ -44,6 +44,14 @@ vi.mock('../contexts/AuthContext', () => ({
   useAuthSession: vi.fn(),
 }));
 
+vi.mock('../contexts/ActiveFarmContext', () => ({
+  useActiveFarm: vi.fn(),
+}));
+
+vi.mock('../viewmodels/useMyRole', () => ({
+  useMyRole: vi.fn(),
+}));
+
 const projectRoot = process.cwd();
 const profileScreenPath = path.resolve(
   projectRoot,
@@ -203,5 +211,60 @@ describe('Sprint 7.4.3.2.2 — confirmacao de Logout', () => {
     expect(content).toContain('sessionStore.clear()');
     expect(content).toContain('activeFarmStore.clear()');
     expect(content).toContain("setStatus('unauthenticated')");
+  });
+});
+
+describe('Sprint 7.4.4.8.3 — perfil com funcao na fazenda ativa', () => {
+  it('consome useActiveFarm para obter a fazenda ativa', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain('useActiveFarm()');
+    expect(content).toContain('activeFarmId');
+    expect(content).toContain('activeFarm?.nome');
+  });
+
+  it('consome useMyRole para obter o papel do usuario', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain('useMyRole(activeFarmId)');
+    expect(content).toContain('ROLE_LABELS');
+  });
+
+  it('exibe secao Fazenda Ativa com o nome da fazenda', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain('FAZENDA ATIVA');
+    expect(content).toContain("activeFarm?.nome ?? 'Nenhuma fazenda selecionada'");
+  });
+
+  it('exibe secao Funcao na Fazenda Ativa com label amigavel', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain('FUNÇÃO NA FAZENDA ATIVA');
+    expect(content).toContain('ROLE_LABELS[role]');
+    expect(content).toContain("roleLabel ?? 'Nenhuma fazenda selecionada'");
+  });
+
+  it('mapeia ADMIN para Administrador e FUNCIONARIO para Funcionario', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain("ADMIN: 'Administrador'");
+    expect(content).toContain("FUNCIONARIO: 'Funcionário'");
+  });
+
+  it('exibe fallback quando nao ha fazenda ativa', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain("'Nenhuma fazenda selecionada'");
+  });
+
+  it('adiciona secoes entre identidade e CONTA mantendo layout existente', () => {
+    const content = readFileSync(profileScreenPath, 'utf-8');
+
+    expect(content).toContain('styles.infoSection');
+    expect(content).toContain('styles.infoValue');
+    expect(content).toContain('identityCard');
+    expect(content).toContain('Meus Convites →');
+    expect(content).toContain('Sair');
   });
 });

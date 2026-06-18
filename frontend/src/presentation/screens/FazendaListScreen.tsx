@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
 import { router, useFocusEffect, type Href } from 'expo-router';
-import { Button, Card, EmptyState, Loading } from '../components';
+import { Button, Card, EmptyState, Loading, PageHeader } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
@@ -81,9 +81,10 @@ export const FazendaListScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.title}>Minhas Fazendas</Text>
+      <PageHeader
+        title="Minhas Fazendas"
+        variant="banner"
+        rightAction={
           <View style={styles.headerActions}>
             <Button
               onPress={() =>
@@ -103,8 +104,8 @@ export const FazendaListScreen: React.FC = () => {
               variant="secondary"
             />
           </View>
-        </View>
-      </View>
+        }
+      />
 
       <FlatList
         data={fazendas}
@@ -128,23 +129,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
-  },
-  header: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.primary,
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
-    marginBottom: theme.spacing.sm - 2,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: theme.typography.fontSize.xxl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textInverse,
   },
   headerActions: {
     flexDirection: 'row',

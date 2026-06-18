@@ -53,8 +53,8 @@ export const membershipApi = {
     await apiClient.delete<void>(`/fazendas/${fazendaId}/members/${memberId}`);
   },
 
-  async acceptInvite(token: string): Promise<{ success: boolean }> {
-    return apiClient.post<{ success: boolean }>('/invites/accept', { token });
+  async acceptInvite(token: string): Promise<{ success: boolean; invite: InviteResponse }> {
+    return apiClient.post<{ success: boolean; invite: InviteResponse }>('/invites/accept', { token });
   },
 
   async getPendingInvites(): Promise<{ success: boolean; invites: InviteResponse[] }> {

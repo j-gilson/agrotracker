@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
+import { Button, Card, ErrorState, Input, PageHeader, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { useCreateEvent } from '../viewmodels/useCreateEvent';
 import { EVENT_TYPE_OPTIONS, EventType } from '../../domain/events/types';
@@ -27,7 +27,15 @@ export const CreateEventScreen: React.FC = () => {
 
   const [type, setType] = useState<EventType | null>(null);
   const [description, setDescription] = useState('');
-  const [dateText, setDateText] = useState(() => new Date().toISOString().slice(0, 16));
+
+  const now = useMemo(() => new Date(), []);
+  const formattedDate = now.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   const { createEvent, loading, error, success, resetState } = useCreateEvent();
   const { showSnackbar } = useSnackbar();
@@ -37,17 +45,11 @@ export const CreateEventScreen: React.FC = () => {
     return description.trim().length < 3 ? 'Informe uma descrição mais completa.' : undefined;
   }, [description]);
 
-  const parsedDate = useMemo(() => {
-    const d = new Date(dateText);
-    return Number.isNaN(d.getTime()) ? null : d;
-  }, [dateText]);
-
   const isValid =
     !!animalId &&
     !!fazendaId &&
     !!type &&
     description.trim().length >= 3 &&
-    !!parsedDate &&
     !descriptionError;
 
   useEffect(() => {
@@ -60,14 +62,14 @@ export const CreateEventScreen: React.FC = () => {
   }, [resetState, showSnackbar, success]);
 
   const handleSubmit = async () => {
-    if (loading || !isValid || !parsedDate) return;
+    if (loading || !isValid) return;
 
     await createEvent({
       animalId,
       fazendaId,
       type,
       description: description.trim(),
-      date: parsedDate,
+      date: now,
     });
   };
 
@@ -85,10 +87,10 @@ export const CreateEventScreen: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Novo Manejo</Text>
-          <Text style={styles.subtitle}>Registre um evento para este animal</Text>
-        </View>
+        <PageHeader
+          title="Novo Manejo"
+          subtitle="Registre um evento para este animal"
+        />
 
         <Card padding={20} shadow style={styles.form}>
           <View style={styles.typeField}>
@@ -123,12 +125,9 @@ export const CreateEventScreen: React.FC = () => {
           />
 
           <Input
-            label="Data (ISO)"
-            value={dateText}
-            onChangeText={setDateText}
-            placeholder="YYYY-MM-DDTHH:mm"
-            returnKeyType="done"
-            onSubmitEditing={handleSubmit}
+            label="Data do Manejo"
+            value={formattedDate}
+            editable={false}
           />
 
           {error ? <ErrorState message={error} /> : null}
@@ -157,18 +156,6 @@ const styles = StyleSheet.create({
   content: {
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
-  },
-  header: {
-    marginBottom: theme.spacing.xl,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.display,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primary,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
   },
   form: {
     elevation: 4,

@@ -2,16 +2,17 @@ import { describe, expect, it, vi } from 'vitest';
 import { acceptInviteAndRefreshFarms } from './acceptInviteAndRefreshFarms';
 
 describe('acceptInviteAndRefreshFarms', () => {
-  it('aceita o convite antes de atualizar as fazendas', async () => {
+  it('aceita o convite antes de atualizar as fazendas e retorna o fazendaId', async () => {
     const calls: string[] = [];
     const acceptInvite = vi.fn(async () => {
       calls.push('accept');
+      return { fazendaId: 'farm-1' };
     });
     const refreshFarms = vi.fn(async () => {
       calls.push('refresh');
     });
 
-    await acceptInviteAndRefreshFarms({
+    const fazendaId = await acceptInviteAndRefreshFarms({
       token: 'invite-token',
       acceptInvite,
       refreshFarms,
@@ -20,6 +21,7 @@ describe('acceptInviteAndRefreshFarms', () => {
     expect(acceptInvite).toHaveBeenCalledWith('invite-token');
     expect(refreshFarms).toHaveBeenCalledOnce();
     expect(calls).toEqual(['accept', 'refresh']);
+    expect(fazendaId).toBe('farm-1');
   });
 
   it('nao atualiza fazendas quando o aceite falha', async () => {
@@ -40,7 +42,7 @@ describe('acceptInviteAndRefreshFarms', () => {
   });
 
   it('propaga falha de sincronizacao depois do aceite', async () => {
-    const acceptInvite = vi.fn(async () => undefined);
+    const acceptInvite = vi.fn(async () => ({ fazendaId: 'farm-1' }));
     const refreshFarms = vi.fn(async () => {
       throw new Error('Falha ao atualizar fazendas');
     });

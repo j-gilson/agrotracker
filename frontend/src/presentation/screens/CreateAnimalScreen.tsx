@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   SafeAreaView,
@@ -10,9 +9,10 @@ import {
 } from 'react-native';
 import { useCreateAnimal } from '../viewmodels/useCreateAnimal';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
+import { Button, Card, ErrorState, Input, PageHeader, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
+import { applyDateMask, brazilianToIso } from '../../core/utils/dateMask';
 
 const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
@@ -44,8 +44,10 @@ export const CreateAnimalScreen: React.FC = () => {
   const { showSnackbar } = useSnackbar();
 
   const parsedBirthDate = useMemo(() => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) return null;
-    const date = new Date(`${dataNascimento}T12:00:00`);
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataNascimento)) return null;
+    const iso = brazilianToIso(dataNascimento);
+    if (!iso) return null;
+    const date = new Date(`${iso}T12:00:00`);
     return Number.isNaN(date.getTime()) ? null : date;
   }, [dataNascimento]);
 
@@ -64,7 +66,7 @@ export const CreateAnimalScreen: React.FC = () => {
   const dataNascimentoError =
     dataNascimento.length > 0 &&
     (!parsedBirthDate || parsedBirthDate.getTime() > Date.now())
-      ? 'Use uma data válida no formato AAAA-MM-DD.'
+      ? 'Use uma data válida no formato DD/MM/AAAA.'
       : undefined;
 
   const isFormValid =
@@ -112,10 +114,10 @@ export const CreateAnimalScreen: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Novo Animal</Text>
-          <Text style={styles.subtitle}>Preencha os dados para o cadastro</Text>
-        </View>
+        <PageHeader
+          title="Novo Animal"
+          subtitle="Preencha os dados para o cadastro"
+        />
 
         <Card padding={20} shadow style={styles.form}>
           <Input
@@ -149,9 +151,10 @@ export const CreateAnimalScreen: React.FC = () => {
             <View style={[styles.flexItem, styles.marginRight]}>
               <Input
                 label="Nascimento"
-                placeholder="AAAA-MM-DD"
+                placeholder="DD/MM/AAAA"
                 value={dataNascimento}
-                onChangeText={setDataNascimento}
+                onChangeText={(text) => setDataNascimento(applyDateMask(text))}
+                keyboardType="number-pad"
                 returnKeyType="next"
                 error={dataNascimentoError}
               />
@@ -206,19 +209,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     padding: theme.spacing.lg,
-  },
-  header: {
-    marginBottom: theme.spacing.xl + theme.spacing.xs,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.display,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primary,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs - 3,
   },
   form: {
     elevation: 4,

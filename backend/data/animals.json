@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "id": "6e23f925-7c91-473c-b181-81688fc861d0",
+    "fazendaId": "923fb1ab-6084-47a6-871e-b62697694169",
+    "codigoIdentificacao": "BOV0001",
+    "nome": "Chico",
+    "raca": "Nerole",
+    "peso": 608,
+    "dataNascimento": "2022-03-10T15:00:00.000Z",
+    "status": "ATIVO",
+    "dataCriacao": "2026-06-17T23:39:29.417Z"
+  },
+  {
+    "id": "fbc9eaab-7a0b-4674-b9b4-35d445f1e165",
+    "fazendaId": "923fb1ab-6084-47a6-871e-b62697694169",
+    "codigoIdentificacao": "BOV0003",
+    "nome": "TUTOIA",
+    "raca": "GI",
+    "peso": 251,
+    "dataNascimento": "2020-05-22T15:00:00.000Z",
+    "status": "ATIVO",
+    "dataCriacao": "2026-06-18T00:02:41.774Z"
+  },
+  {
+    "id": "f8bea745-8eae-4a43-9a5f-1689138a1c51",
+    "fazendaId": "923fb1ab-6084-47a6-871e-b62697694169",
+    "codigoIdentificacao": "BOV0004",
+    "nome": "Mocinha",
+    "raca": "Holandês",
+    "peso": 300,
+    "dataNascimento": "2021-03-25T15:00:00.000Z",
+    "status": "ATIVO",
+    "dataCriacao": "2026-06-18T00:12:11.832Z"
+  }
+]

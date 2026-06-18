@@ -10,7 +10,7 @@ const content = readFileSync(screenPath, 'utf-8');
 
 describe('Sprint 7.4.4.5.2 — melhorias UX da ficha do animal', () => {
   it('destaca nome, codigo e status na area principal', () => {
-    expect(content).toContain('styles.headerContent');
+    expect(content).toContain('<PageHeader');
     expect(content).toContain('styles.animalCode');
     expect(content).toContain(
       "{animal?.codigoIdentificacao ?? 'Código não informado'}"

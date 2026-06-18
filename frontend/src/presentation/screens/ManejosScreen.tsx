@@ -13,7 +13,7 @@ import { useManejos } from '../viewmodels/useManejos';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { router, useFocusEffect } from 'expo-router';
 import { Event } from '../../domain/events/entities/Event';
-import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
+import { Button, Card, EmptyState, ErrorState, Loading, PageHeader } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { formatDate } from '../../core/utils/formatDate';
@@ -85,10 +85,10 @@ export const ManejosScreen: React.FC = () => {
   if (!activeFarmId) {
     return (
       <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Manejos</Text>
-          <Text style={styles.subtitle}>Nenhuma fazenda ativa</Text>
-        </View>
+        <PageHeader
+          title="Manejos"
+          subtitle="Nenhuma fazenda ativa"
+        />
 
         <View style={styles.emptyStateContainer}>
           <EmptyState
@@ -104,14 +104,14 @@ export const ManejosScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Manejos</Text>
-        <Text style={styles.subtitle}>
-          {activeFarm
+      <PageHeader
+        title="Manejos"
+        subtitle={
+          activeFarm
             ? `Histórico de ${activeFarm.nome}`
-            : 'Histórico de atividades recentes'}
-        </Text>
-      </View>
+            : 'Histórico de atividades recentes'
+        }
+      />
 
       {loading && events.length === 0 ? (
         <Loading text="Carregando manejos..." variant="list" />
@@ -149,18 +149,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-  header: {
-    padding: theme.spacing.lg,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.display,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primaryDark,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
   },
   listContent: {
     padding: theme.spacing.md,

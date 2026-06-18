@@ -12,7 +12,7 @@ import { theme } from '../../core/theme';
 interface InputProps {
   label?: string;
   value: string;
-  onChangeText: (text: string) => void;
+  onChangeText?: (text: string) => void;
   placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
   secureTextEntry?: boolean;
@@ -49,7 +49,7 @@ export const Input: React.FC<InputProps> = ({
         autoCapitalize={autoCapitalize}
         editable={editable}
         keyboardType={keyboardType}
-        onChangeText={onChangeText}
+        onChangeText={onChangeText ?? (() => {})}
         onBlur={() => setIsFocused(false)}
         onFocus={() => setIsFocused(true)}
         onSubmitEditing={onSubmitEditing}

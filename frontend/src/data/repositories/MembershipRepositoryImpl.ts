@@ -61,8 +61,9 @@ export class MembershipRepositoryImpl implements IMembershipRepository {
     await membershipApi.removeMember(fazendaId, memberId);
   }
 
-  async acceptInvite(token: string): Promise<void> {
-    await membershipApi.acceptInvite(token);
+  async acceptInvite(token: string): Promise<{ fazendaId: string }> {
+    const response = await membershipApi.acceptInvite(token);
+    return { fazendaId: response.invite.fazendaId };
   }
 
   async getPendingInvites(): Promise<Invite[]> {

@@ -13,7 +13,7 @@ import { useInventario } from '../viewmodels/useInventario';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { router, useFocusEffect } from 'expo-router';
 import { Animal } from '../../domain/entities/Animal';
-import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
+import { Button, Card, EmptyState, ErrorState, Loading, PageHeader } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { formatWeight } from '../../core/utils/formatWeight';
@@ -93,14 +93,14 @@ export const InventarioScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Inventário</Text>
-        <Text style={styles.subtitle}>
-          {activeFarm
+      <PageHeader
+        title="Inventário"
+        subtitle={
+          activeFarm
             ? `Rebanho de ${activeFarm.nome}`
-            : 'Listagem completa do rebanho'}
-        </Text>
-      </View>
+            : 'Listagem completa do rebanho'
+        }
+      />
 
       {loading && animals.length === 0 ? (
         <Loading text="Carregando inventário..." variant="list" />
@@ -146,22 +146,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-
-  header: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.background,
-  },
-
-  title: {
-    fontSize: theme.typography.fontSize.display,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primaryDark,
-  },
-
-  subtitle: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
   },
 
   listContent: {

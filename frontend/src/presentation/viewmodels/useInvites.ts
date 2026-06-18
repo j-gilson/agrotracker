@@ -7,7 +7,10 @@ import { RejectInvite } from '../../domain/membership/usecases/RejectInvite';
 import { humanizeError } from '../../core/utils/humanizeError';
 import { acceptInviteAndRefreshFarms } from './acceptInviteAndRefreshFarms';
 
-export const useInvites = (refreshFarms: () => Promise<void>) => {
+export const useInvites = (
+  refreshFarms: () => Promise<void>,
+  setActiveFarm: (fazendaId: string) => Promise<void>
+) => {
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -40,18 +43,20 @@ export const useInvites = (refreshFarms: () => Promise<void>) => {
   }, [refresh]);
 
   const accept = useCallback(
-    async (invite: Invite) => {
+    async (invite: Invite): Promise<string> => {
       try {
         setProcessingId(invite.id);
         setError(null);
-        await acceptInviteAndRefreshFarms({
+        const fazendaId = await acceptInviteAndRefreshFarms({
           token: invite.token,
           acceptInvite: (token) => acceptInvite.execute(token),
           refreshFarms,
         });
+        await setActiveFarm(fazendaId);
         setInvites((current) =>
           current.filter((item) => item.id !== invite.id)
         );
+        return fazendaId;
       } catch (err: unknown) {
         await refresh();
         throw new Error(
@@ -61,7 +66,7 @@ export const useInvites = (refreshFarms: () => Promise<void>) => {
         setProcessingId(null);
       }
     },
-    [acceptInvite, refresh, refreshFarms]
+    [acceptInvite, refresh, refreshFarms, setActiveFarm]
   );
 
   const reject = useCallback(

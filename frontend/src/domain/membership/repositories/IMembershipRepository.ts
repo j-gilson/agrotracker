@@ -10,6 +10,6 @@ export interface IMembershipRepository {
   toggleActive(fazendaId: string, memberId: string): Promise<void>;
   removeMember(fazendaId: string, memberId: string): Promise<void>;
   getPendingInvites(): Promise<Invite[]>;
-  acceptInvite(token: string): Promise<void>;
+  acceptInvite(token: string): Promise<{ fazendaId: string }>;
   rejectInvite(inviteId: string): Promise<void>;
 }

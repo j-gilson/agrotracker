@@ -7,3 +7,4 @@ export { Loading } from './Loading';
 export { Skeleton } from './Skeleton';
 export { SnackbarProvider, useSnackbar } from './SnackbarProvider';
 export { RoleGuard } from './RoleGuard';
+export { PageHeader } from './PageHeader';

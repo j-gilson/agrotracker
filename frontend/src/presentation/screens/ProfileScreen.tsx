@@ -3,8 +3,10 @@ import { Alert, Platform, SafeAreaView, StatusBar, StyleSheet, Text, View } from
 import { router } from 'expo-router';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { theme } from '../../core/theme';
-import { Button, Card } from '../components';
+import { Button, Card, PageHeader } from '../components';
 import { useAuthSession } from '../contexts/AuthContext';
+import { useActiveFarm } from '../contexts/ActiveFarmContext';
+import { useMyRole } from '../viewmodels/useMyRole';
 
 const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
 
@@ -50,18 +52,28 @@ export const confirmLogout = (
   ]);
 };
 
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Administrador',
+  FUNCIONARIO: 'Funcionário',
+};
+
 export const ProfileScreen: React.FC = () => {
   const { user, logout } = useAuthSession();
+  const { activeFarmId, activeFarm } = useActiveFarm();
+  const { role } = useMyRole(activeFarmId);
+
   const userName = user?.nome ?? 'Não informado';
   const userEmail = user?.email ?? 'Não informado';
+  const farmName = activeFarm?.nome ?? 'Nenhuma fazenda selecionada';
+  const roleLabel = role ? ROLE_LABELS[role] : null;
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Meu Perfil</Text>
-          <Text style={styles.subtitle}>Gerencie sua conta e acesso</Text>
-        </View>
+        <PageHeader
+          title="Meu Perfil"
+          subtitle="Gerencie sua conta e acesso"
+        />
 
         <Card padding={24} style={styles.identityCard}>
           <View style={styles.avatar}>
@@ -70,6 +82,16 @@ export const ProfileScreen: React.FC = () => {
           <Text style={styles.userName}>{userName}</Text>
           <Text style={styles.userEmail}>{userEmail}</Text>
         </Card>
+
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionLabel}>FAZENDA ATIVA</Text>
+          <Text style={styles.infoValue}>{farmName}</Text>
+        </View>
+
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionLabel}>FUNÇÃO NA FAZENDA ATIVA</Text>
+          <Text style={styles.infoValue}>{roleLabel ?? 'Nenhuma fazenda selecionada'}</Text>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>CONTA</Text>
@@ -104,19 +126,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: theme.spacing.lg,
   },
-  header: {
-    marginBottom: theme.spacing.xl,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.display,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primaryDark,
-  },
-  subtitle: {
-    marginTop: theme.spacing.xxs,
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
   identityCard: {
     alignItems: 'center',
     marginBottom: theme.spacing.xl,
@@ -148,6 +157,17 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.md,
     marginTop: theme.spacing.xxs,
     textAlign: 'center',
+  },
+  infoSection: {
+    marginBottom: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderSoft,
+  },
+  infoValue: {
+    fontSize: theme.typography.fontSize.md,
+    color: theme.colors.textPrimary,
+    marginTop: theme.spacing.xs,
   },
   section: {
     marginBottom: theme.spacing.lg,

@@ -13,6 +13,7 @@ import {
   EmptyState,
   ErrorState,
   Loading,
+  PageHeader,
 } from '../components';
 import { useScanner } from '../viewmodels/useScanner';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
@@ -110,19 +111,17 @@ export function ScannerScreen() {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Scanner</Text>
-          <Text style={styles.subtitle}>
-            Leia o código de identificação do animal
-          </Text>
-        </View>
-        <Button
-          title={isFlashlightOn ? 'Desligar flash' : 'Ligar flash'}
-          variant="secondary"
-          onPress={toggleFlashlight}
-        />
-      </View>
+      <PageHeader
+        title="Scanner"
+        subtitle="Leia o código de identificação do animal"
+        rightAction={
+          <Button
+            title={isFlashlightOn ? 'Desligar flash' : 'Ligar flash'}
+            variant="secondary"
+            onPress={toggleFlashlight}
+          />
+        }
+      />
 
       <View style={styles.cameraContainer}>
         <CameraView
@@ -215,22 +214,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.lg,
     backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  title: {
-    fontSize: typography.fontSize.display,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
   },
   cameraContainer: {
     minHeight: 380,

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { theme } from '../../core/theme';
-import { Button, Card, ErrorState, Input, RoleGuard, useSnackbar } from '../components';
+import { Button, Card, ErrorState, Input, PageHeader, RoleGuard, useSnackbar } from '../components';
 import { useInviteUser } from '../viewmodels/useInviteUser';
 import { MemberRole } from '../../domain/membership/types';
 
@@ -61,10 +61,10 @@ const InviteUserContent: React.FC<{ fazendaId: string }> = ({ fazendaId }) => {
       style={[styles.container, { paddingTop: SAFE_TOP }]}
     >
       <View style={styles.inner}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Convidar membro</Text>
-          <Text style={styles.subtitle}>Envie o convite por e-mail (token gerado)</Text>
-        </View>
+        <PageHeader
+          title="Convidar membro"
+          subtitle="Envie o convite por e-mail (token gerado)"
+        />
 
         <Card padding={20} shadow style={styles.form}>
           <Input
@@ -132,21 +132,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: theme.spacing.xl,
     justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.xxl + theme.spacing.md,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.xxl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primaryDark,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xxs,
-    textAlign: 'center',
   },
   form: {
     width: '100%',

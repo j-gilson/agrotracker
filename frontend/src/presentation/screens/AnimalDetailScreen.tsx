@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  Pressable,
   SafeAreaView,
   RefreshControl,
   Platform,
@@ -17,7 +16,7 @@ import {
   useLocalSearchParams,
   type Href,
 } from 'expo-router';
-import { Card, EmptyState, ErrorState, Loading, Button } from '../components';
+import { Card, EmptyState, ErrorState, Loading, Button, PageHeader } from '../components';
 import { theme } from '../../core/theme';
 import { formatDate } from '../../core/utils/formatDate';
 import { formatWeight } from '../../core/utils/formatWeight';
@@ -105,21 +104,13 @@ export const AnimalDetailScreen: React.FC = () => {
           />
         }
       >
-        <View style={styles.headerRow}>
-          <View style={styles.headerContent}>
-            <Text style={styles.title}>
-              {animal?.nome || animal?.codigoIdentificacao || 'Animal'}
-            </Text>
-            <Text style={styles.animalCode}>
-              {animal?.codigoIdentificacao ?? 'Código não informado'}
-            </Text>
-            {animal?.status ? <StatusBadge status={animal.status} /> : null}
-          </View>
-
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>Voltar</Text>
-          </Pressable>
-        </View>
+        <PageHeader
+          title={animal?.nome || animal?.codigoIdentificacao || 'Animal'}
+        />
+        <Text style={styles.animalCode}>
+          {animal?.codigoIdentificacao ?? 'Código não informado'}
+        </Text>
+        {animal?.status ? <StatusBadge status={animal.status} /> : null}
 
 
 
@@ -211,32 +202,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.lg,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 24,
-  },
-  headerContent: {
-    flex: 1,
-    paddingRight: theme.spacing.md,
-  },
-  backButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.borderSoft,
-  },
-  backText: {
-    color: theme.colors.textPrimary,
-    fontWeight: theme.typography.fontWeight.semibold,
-    fontSize: theme.typography.fontSize.sm,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.xxl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primaryDark,
   },
   animalCode: {
     color: theme.colors.textSecondary,

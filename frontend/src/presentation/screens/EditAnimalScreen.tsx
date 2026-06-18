@@ -12,7 +12,7 @@ import {
 import { useAnimalDetail } from '../viewmodels/useAnimalDetail';
 import { useUpdateAnimal } from '../viewmodels/useUpdateAnimal';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button, Card, ErrorState, Input, useSnackbar } from '../components';
+import { Button, Card, ErrorState, Input, PageHeader, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { StatusAnimal } from '../../domain/entities/Animal';
@@ -120,18 +120,10 @@ export const EditAnimalScreen: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.title}>Editar Animal</Text>
-            <Text style={styles.subtitle}>
-              {animal?.codigoIdentificacao}
-            </Text>
-          </View>
-
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>Voltar</Text>
-          </Pressable>
-        </View>
+        <PageHeader
+          title="Editar Animal"
+          subtitle={animal?.codigoIdentificacao}
+        />
 
         <Card padding={20} shadow style={styles.card}>
           <Text style={styles.sectionTitle}>Campos somente leitura</Text>
@@ -236,33 +228,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.textSecondary,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-  },
-  backButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.borderSoft,
-  },
-  backText: {
-    color: theme.colors.textPrimary,
-    fontWeight: theme.typography.fontWeight.semibold,
-    fontSize: theme.typography.fontSize.sm,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.xxl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primaryDark,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xxs,
   },
   card: {
     marginBottom: theme.spacing.lg,

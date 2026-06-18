@@ -9,8 +9,9 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Invite } from '../../domain/membership/entities/Invite';
+import { AppRoutes } from '../../core/routes/AppRoutes';
 import { theme } from '../../core/theme';
 import {
   Button,
@@ -18,6 +19,7 @@ import {
   EmptyState,
   ErrorState,
   Loading,
+  PageHeader,
   useSnackbar,
 } from '../components';
 import { useInvites } from '../viewmodels/useInvites';
@@ -31,7 +33,7 @@ const roleLabels = {
 } as const;
 
 export const InvitesScreen: React.FC = () => {
-  const { refreshFarms } = useActiveFarm();
+  const { refreshFarms, setActiveFarm } = useActiveFarm();
   const {
     invites,
     loading,
@@ -40,7 +42,7 @@ export const InvitesScreen: React.FC = () => {
     refresh,
     accept,
     reject,
-  } = useInvites(refreshFarms);
+  } = useInvites(refreshFarms, setActiveFarm);
   const { showSnackbar } = useSnackbar();
   const hasFocusedOnceRef = useRef(false);
 
@@ -58,6 +60,7 @@ export const InvitesScreen: React.FC = () => {
     async (invite: Invite) => {
       try {
         await accept(invite);
+        router.replace(AppRoutes.HOME);
         showSnackbar({
           message: 'Convite aceito com sucesso.',
           variant: 'success',
@@ -143,12 +146,11 @@ export const InvitesScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Meus Convites</Text>
-        <Text style={styles.subtitle}>
-          Convites pendentes enviados para seu e-mail
-        </Text>
-      </View>
+      <PageHeader
+        title="Meus Convites"
+        subtitle="Convites pendentes enviados para seu e-mail"
+        variant="banner"
+      />
       <FlatList
         data={invites}
         keyExtractor={(item) => item.id}
@@ -176,20 +178,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
-  },
-  header: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.primary,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.xxl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textInverse,
-  },
-  subtitle: {
-    marginTop: theme.spacing.xxs,
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textInverse,
   },
   list: {
     padding: theme.spacing.md,
