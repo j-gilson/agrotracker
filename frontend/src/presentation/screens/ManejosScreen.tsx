@@ -45,6 +45,7 @@ export const ManejosScreen: React.FC = () => {
 
   const renderManejoItem = ({ item }: { item: Event }) => (
     <Card
+      accessibilityLabel={`Abrir detalhes do manejo ${getEventTypeLabel(item.type)}`}
       marginBottom={16}
       onPress={() => router.push(AppRoutes.ANIMAL_DETAIL(item.animalId))}
       style={styles.card}
@@ -74,7 +75,9 @@ export const ManejosScreen: React.FC = () => {
   const renderEmpty = () => (
     <EmptyState
       subtitle="Registre um manejo para começar a preencher o histórico."
-      title="Nenhum manejo encontrado."
+      title="Nenhum manejo encontrado"
+      buttonText="Identificar para Manejo"
+      onPress={() => router.push(AppRoutes.SCANNER_WITH_FAZENDA(activeFarmId))}
     />
   );
 
@@ -92,7 +95,7 @@ export const ManejosScreen: React.FC = () => {
 
         <View style={styles.emptyStateContainer}>
           <EmptyState
-            buttonText="Selecionar Fazenda"
+            buttonText="Minhas Fazendas"
             onPress={() => router.push({ pathname: AppRoutes.FAZENDAS })}
             subtitle="Selecione uma fazenda para visualizar e registrar manejos."
             title="Nenhuma fazenda ativa"
@@ -111,6 +114,7 @@ export const ManejosScreen: React.FC = () => {
             ? `Histórico de ${activeFarm.nome}`
             : 'Histórico de atividades recentes'
         }
+        variant="banner"
       />
 
       {loading && events.length === 0 ? (
@@ -134,13 +138,15 @@ export const ManejosScreen: React.FC = () => {
         />
       )}
 
-      <Button
-        onPress={() =>
-          router.push(AppRoutes.SCANNER_WITH_FAZENDA(activeFarmId))
-        }
-        style={styles.fab}
-        title="Escanear para Novo Manejo"
-      />
+      {!error && !(loading && events.length === 0) ? (
+        <Button
+          onPress={() =>
+            router.push(AppRoutes.SCANNER_WITH_FAZENDA(activeFarmId))
+          }
+          style={styles.fab}
+          title="Identificar para Manejo"
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

@@ -22,6 +22,8 @@ interface InputProps {
   returnKeyType?: TextInputProps['returnKeyType'];
   onSubmitEditing?: TextInputProps['onSubmitEditing'];
   editable?: boolean;
+  required?: boolean;
+  accessibilityHint?: string;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -37,14 +39,17 @@ export const Input: React.FC<InputProps> = ({
   returnKeyType,
   onSubmitEditing,
   editable = true,
+  required = false,
+  accessibilityHint,
 }) => {
   const helperMessage = error ?? helperText;
   const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View style={styles.wrapper}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={styles.label}>{label}{required ? <Text style={styles.required}> *</Text> : null}</Text> : null}
       <TextInput
+        accessibilityHint={accessibilityHint}
         accessibilityLabel={label ?? placeholder}
         autoCapitalize={autoCapitalize}
         editable={editable}
@@ -113,5 +118,9 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: theme.colors.danger,
+  },
+  required: {
+    color: theme.colors.danger,
+    fontWeight: theme.typography.fontWeight.bold,
   },
 });

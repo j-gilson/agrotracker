@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { router, type Href } from 'expo-router';
 import { useLoginViewModel } from '../../viewmodels/useAuth';
-import { Button, Card, Input, useSnackbar } from '../../components';
+import { Button, Card, ErrorState, Input, useSnackbar } from '../../components';
 import { theme } from '../../../core/theme';
 import { AppRoutes } from '../../../core/routes/AppRoutes';
 
@@ -19,7 +19,7 @@ export const LoginScreen: React.FC = () => {
   const { showSnackbar } = useSnackbar();
 
   const emailError =
-    email.length > 0 && !email.includes('@') ? 'Digite um e-mail valido.' : undefined;
+    email.length > 0 && !email.includes('@') ? 'Digite um e-mail válido.' : undefined;
   const passwordError =
     password.length > 0 && password.length < 8
       ? 'A senha deve ter ao menos 8 caracteres.'
@@ -61,20 +61,25 @@ export const LoginScreen: React.FC = () => {
             label="E-mail"
             onChangeText={setEmail}
             placeholder="seu@email.com"
+            required
             returnKeyType="next"
             value={email}
           />
 
           <Input
-            error={error ?? passwordError}
+            accessibilityHint="Mínimo de 8 caracteres"
+            error={passwordError}
             label="Senha"
             onChangeText={setPassword}
             onSubmitEditing={handleLogin}
             placeholder="Sua senha"
+            required
             returnKeyType="done"
             secureTextEntry
             value={password}
           />
+
+          {error ? <ErrorState message={error} /> : null}
 
           <Button
             disabled={loading || !isFormValid}
@@ -88,6 +93,8 @@ export const LoginScreen: React.FC = () => {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Não tem uma conta?</Text>
           <Pressable
+            accessibilityLabel="Cadastre-se"
+            accessibilityRole="link"
             onPress={() => router.push(AppRoutes.REGISTER as Href)}
             style={styles.footerAction}
           >

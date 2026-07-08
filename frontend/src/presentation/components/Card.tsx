@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Pressable,
+  Platform,
   StyleProp,
   StyleSheet,
   View,
@@ -15,6 +16,7 @@ interface CardProps {
   padding?: number;
   marginBottom?: number;
   style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -24,6 +26,7 @@ export const Card: React.FC<CardProps> = ({
   padding = 16,
   marginBottom = 0,
   style,
+  accessibilityLabel,
 }) => {
   const content = (
     <View
@@ -44,6 +47,7 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -64,27 +68,30 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
 
-  shadow: {
-    // React Native Android
-    elevation: 4,
-
-    // React Native iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
+  shadow: Platform.select({
+    web: {
+      boxShadow: '0px 4px 10px rgba(0,0,0,0.08)',
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    default: {
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+    },
+  }),
 
-    // React Native Web
-    boxShadow: '0px 4px 10px rgba(0,0,0,0.08)',
-  },
-
-  flat: {
-    elevation: 0,
-    boxShadow: 'none',
-  },
+  flat: Platform.select({
+    web: {
+      boxShadow: 'none',
+    },
+    default: {
+      elevation: 0,
+    },
+  }),
 
   pressable: {
     borderRadius: theme.radius.xl,

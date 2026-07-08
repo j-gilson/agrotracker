@@ -77,7 +77,7 @@ export const CreateEventScreen: React.FC = () => {
     return (
       <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
         <View style={styles.content}>
-          <ErrorState message="Parâmetro obrigatório não informado: animalId ou fazendaId." />
+          <ErrorState message="Não foi possível abrir esta tela. Volte e tente novamente." />
           <Button title="Voltar" onPress={() => router.back()} variant="secondary" />
         </View>
       </SafeAreaView>
@@ -89,18 +89,19 @@ export const CreateEventScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scroll}>
         <PageHeader
           title="Novo Manejo"
-          subtitle="Registre um evento para este animal"
+          subtitle="Registre um manejo para este animal"
         />
 
         <Card padding={20} shadow style={styles.form}>
           <View style={styles.typeField}>
-            <Text style={styles.fieldLabel}>Tipo</Text>
+            <Text style={styles.fieldLabel} accessibilityRole="header">Tipo</Text>
             <View style={styles.typeOptions}>
               {EVENT_TYPE_OPTIONS.map((option) => {
                 const selected = type === option.value;
                 return (
                   <Pressable
                     key={option.value}
+                    accessibilityLabel={`Selecionar tipo ${option.label}`}
                     accessibilityRole="radio"
                     accessibilityState={{ selected }}
                     onPress={() => setType(option.value)}
@@ -121,11 +122,12 @@ export const CreateEventScreen: React.FC = () => {
             onChangeText={setDescription}
             placeholder="Descreva o manejo"
             error={descriptionError}
+            required
             returnKeyType="next"
           />
 
           <Input
-            label="Data do Manejo"
+            label="Data do manejo"
             value={formattedDate}
             editable={false}
           />
@@ -157,9 +159,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
   },
-  form: {
-    elevation: 4,
-  },
+  form: {},
   typeField: {
     gap: theme.spacing.sm,
   },

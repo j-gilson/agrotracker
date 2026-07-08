@@ -1,4 +1,4 @@
-import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
   View,
@@ -15,16 +15,20 @@ import { Animal } from '../../domain/entities/Animal';
 import { Button, Card, EmptyState, ErrorState, Loading, PageHeader } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
-import { usePermissions } from '../../core/auth/usePermissions';
 
 const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
+
+const animalStatusLabels = {
+  ATIVO: 'Ativo',
+  VENDIDO: 'Vendido',
+  MORTO: 'Morto',
+} as const;
 
 export const AnimalListScreen: React.FC = () => {
   const { fazendaId } = useLocalSearchParams();
   const fazendaIdValue =
     typeof fazendaId === 'string' ? fazendaId : Array.isArray(fazendaId) ? fazendaId[0] : '';
   const { animals, loading, error, refresh } = useAnimals(fazendaIdValue);
-  const { canViewMembers } = usePermissions(fazendaIdValue);
 
   useFocusEffect(
     useCallback(() => {
@@ -33,11 +37,12 @@ export const AnimalListScreen: React.FC = () => {
   );
 
   if (!fazendaIdValue) {
-    return <ErrorState message="Parâmetro obrigatório não informado: fazendaId." />;
+    return <ErrorState message="Não foi possível abrir esta tela. Volte e tente novamente." />;
   }
 
   const renderItem = ({ item }: { item: Animal }) => (
     <Card
+      accessibilityLabel={`Abrir ficha do animal ${item.nome || item.codigoIdentificacao}`}
       marginBottom={12}
       onPress={() => router.push(AppRoutes.ANIMAL_DETAIL(item.id))}
       style={styles.card}
@@ -49,7 +54,7 @@ export const AnimalListScreen: React.FC = () => {
           </Text>
           <Text style={styles.animalCode}>{item.codigoIdentificacao}</Text>
         </View>
-        <Text style={styles.animalStatus}>{item.status}</Text>
+        <Text style={styles.animalStatus}>{animalStatusLabels[item.status]}</Text>
       </View>
       <View style={styles.cardContent}>
         <Text style={styles.animalInfo}>Idade: {item.idade} anos</Text>
@@ -61,15 +66,15 @@ export const AnimalListScreen: React.FC = () => {
 
   const renderEmpty = () => (
     <EmptyState
-      buttonText="Cadastrar primeiro animal"
+      buttonText="Novo Animal"
       onPress={() =>
         router.push({
           pathname: AppRoutes.CREATE_ANIMAL,
           params: { fazendaId: fazendaIdValue },
         })
       }
-      subtitle="Cadastre o primeiro animal desta fazenda para começar a organizar o rebanho."
-      title="Nenhum animal encontrado."
+      subtitle="Cadastre o primeiro animal desta fazenda."
+      title="Rebanho vazio"
     />
   );
 
@@ -87,33 +92,17 @@ export const AnimalListScreen: React.FC = () => {
         title="Meu Rebanho"
         variant="banner"
         rightAction={
-          <View style={styles.headerActions}>
-            {canViewMembers ? (
-              <Button
-                onPress={() =>
-                  router.push({
-                    pathname: AppRoutes.FAZENDA_TEAM,
-                    params: { fazendaId: fazendaIdValue },
-                  } as unknown as Href)
-                }
-                accessibilityLabel="Gerenciar equipe da fazenda"
-                style={styles.teamButton}
-                title="Equipe"
-                variant="secondary"
-              />
-            ) : null}
-            <Button
-              onPress={() =>
-                router.push({
-                  pathname: AppRoutes.CREATE_ANIMAL,
-                  params: { fazendaId: fazendaIdValue },
-                })
-              }
-              style={styles.addButton}
-              title="+ Novo"
-              variant="secondary"
-            />
-          </View>
+          <Button
+            onPress={() =>
+              router.push({
+                pathname: AppRoutes.CREATE_ANIMAL,
+                params: { fazendaId: fazendaIdValue },
+              })
+            }
+            style={styles.addButton}
+            title="Novo Animal"
+            variant="secondary"
+          />
         }
       />
 
@@ -140,22 +129,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  teamButton: {
-    minHeight: 40,
-    paddingHorizontal: 14,
-  },
   addButton: {
     minHeight: 40,
-    paddingHorizontal: 14,
+    paddingHorizontal: theme.spacing.sm,
     borderColor: theme.colors.transparent,
   },
   listContainer: {
-    padding: theme.spacing.sm - 2,
+    padding: theme.spacing.md,
     flexGrow: 1,
   },
   card: {
@@ -175,11 +155,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.textPrimary,
   },
-  animalRaca: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
-    fontStyle: 'italic',
-  },
+
   animalCode: {
     fontSize: theme.typography.fontSize.xs,
     color: theme.colors.textSecondary,

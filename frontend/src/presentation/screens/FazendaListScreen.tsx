@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { Fazenda } from '../../domain/fazenda/entities/Fazenda';
-import { router, useFocusEffect, type Href } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Button, Card, EmptyState, Loading, PageHeader } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
@@ -44,6 +44,7 @@ export const FazendaListScreen: React.FC = () => {
   const renderItem = ({ item }: { item: Fazenda }) => (
     <View style={styles.fazendaItem}>
       <Card
+        accessibilityLabel={`Abrir fazenda ${item.nome}`}
         onPress={() => item.id && handleFazendaPress(item.id)}
         style={styles.card}
       >
@@ -68,10 +69,10 @@ export const FazendaListScreen: React.FC = () => {
 
   const renderEmpty = () => (
     <EmptyState
-      buttonText="Cadastrar primeira fazenda"
+      buttonText="Nova Fazenda"
       onPress={() => router.push({ pathname: AppRoutes.CREATE_FAZENDA })}
       subtitle="Registre uma propriedade rural para começar a organizar seus animais."
-      title="Nenhuma fazenda encontrada."
+      title="Nenhuma fazenda encontrada"
     />
   );
 
@@ -85,25 +86,12 @@ export const FazendaListScreen: React.FC = () => {
         title="Minhas Fazendas"
         variant="banner"
         rightAction={
-          <View style={styles.headerActions}>
-            <Button
-              onPress={() =>
-                router.push({
-                  pathname: AppRoutes.INVITES,
-                } as unknown as Href)
-              }
-              accessibilityLabel="Ver convites pendentes"
-              style={styles.headerButton}
-              title="Convites"
-              variant="secondary"
-            />
-            <Button
-              onPress={() => router.push({ pathname: AppRoutes.CREATE_FAZENDA })}
-              style={styles.headerButton}
-              title="+ Novo"
-              variant="secondary"
-            />
-          </View>
+          <Button
+            onPress={() => router.push({ pathname: AppRoutes.CREATE_FAZENDA })}
+            style={styles.headerButton}
+            title="Nova Fazenda"
+            variant="secondary"
+          />
         }
       />
 
@@ -130,16 +118,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
   },
-  headerActions: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-  },
   headerButton: {
     minHeight: 40,
-    paddingHorizontal: 12,
+    paddingHorizontal: theme.spacing.sm,
   },
   listContainer: {
-    padding: theme.spacing.sm - 2,
+    padding: theme.spacing.md,
     flexGrow: 1,
   },
   card: {

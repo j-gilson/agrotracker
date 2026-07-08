@@ -12,7 +12,7 @@ import {
 import { useAnimalDetail } from '../viewmodels/useAnimalDetail';
 import { useUpdateAnimal } from '../viewmodels/useUpdateAnimal';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button, Card, ErrorState, Input, PageHeader, useSnackbar } from '../components';
+import { Button, Card, ErrorState, Input, Loading, PageHeader, useSnackbar } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { StatusAnimal } from '../../domain/entities/Animal';
@@ -50,7 +50,7 @@ export const EditAnimalScreen: React.FC = () => {
     if (!success) return;
 
     showSnackbar({
-      message: `${animal?.nome || animal?.codigoIdentificacao || 'Animal'} atualizado com sucesso.`,
+      message: 'Animal atualizado com sucesso.',
       variant: 'success',
     });
     resetState();
@@ -100,13 +100,7 @@ export const EditAnimalScreen: React.FC = () => {
   };
 
   if (loadingDetail) {
-    return (
-      <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Carregando dados do animal...</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <Loading text="Carregando dados do animal..." variant="detail" />;
   }
 
   if (!animal) {
@@ -129,7 +123,7 @@ export const EditAnimalScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Campos somente leitura</Text>
 
           <View style={styles.readonlyRow}>
-            <Text style={styles.readonlyLabel}>Código de Identificação</Text>
+            <Text style={styles.readonlyLabel}>Número identificador</Text>
             <Text style={styles.readonlyValue}>{animal.codigoIdentificacao}</Text>
           </View>
           <View style={styles.readonlyRow}>
@@ -162,6 +156,7 @@ export const EditAnimalScreen: React.FC = () => {
             onChangeText={setRaca}
             returnKeyType="next"
             error={racaError}
+            required
           />
 
           <Input
@@ -170,15 +165,19 @@ export const EditAnimalScreen: React.FC = () => {
             value={peso}
             onChangeText={setPeso}
             keyboardType="decimal-pad"
+            required
             returnKeyType="next"
             error={pesoError}
           />
 
-          <Text style={styles.statusLabel}>Status</Text>
+          <Text style={styles.statusLabel} accessibilityRole="header">Status</Text>
           <View style={styles.statusRow}>
             {STATUS_OPTIONS.map((option) => (
               <Pressable
                 key={option}
+                accessibilityLabel={`Selecionar status ${option === 'ATIVO' ? 'Ativo' : option === 'VENDIDO' ? 'Vendido' : 'Morto'}`}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: status === option }}
                 onPress={() => setStatus(option)}
                 style={[
                   styles.statusOption,
@@ -201,7 +200,7 @@ export const EditAnimalScreen: React.FC = () => {
 
           <Button
             fullWidth
-            title="Salvar Alterações"
+            title="Salvar"
             onPress={handleSave}
             loading={saving}
             disabled={saving || !isFormValid || !hasChanges}
@@ -220,23 +219,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     padding: theme.spacing.lg,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
   card: {
     marginBottom: theme.spacing.lg,
     backgroundColor: theme.colors.backgroundMuted,
     borderColor: theme.colors.border,
   },
-  form: {
-    elevation: 4,
-  },
+  form: {},
   sectionTitle: {
     fontSize: theme.typography.fontSize.lg,
     fontWeight: theme.typography.fontWeight.bold,

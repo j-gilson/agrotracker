@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 import { useHome } from '../viewmodels/useHome';
 import { useActiveFarm } from '../contexts/ActiveFarmContext';
 import { router, useFocusEffect, type Href } from 'expo-router';
-import { Button, Card, EmptyState, ErrorState, Loading } from '../components';
+import { Card, EmptyState, ErrorState, Loading } from '../components';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
 import { refreshOnReturn } from '../navigation/refreshOnReturn';
@@ -46,6 +46,8 @@ export const HomeScreen: React.FC = () => {
   );
   const hasFocusedOnceRef = useRef(false);
   const activeFarm = farms.find((farm) => farm.id === activeFarmId) ?? farms[0];
+  const [areasExpanded, setAreasExpanded] = useState(false);
+
   const refreshHome = useCallback(async () => {
     await refreshFarms();
     await refresh();
@@ -63,7 +65,7 @@ export const HomeScreen: React.FC = () => {
 
   const handleInventarioPress = () => {
     router.push({
-      pathname: AppRoutes.INVENTARIO,
+      pathname: AppRoutes.ANIMAL_LIST,
       params: activeFarmId ? { fazendaId: activeFarmId } : {},
     });
   };
@@ -87,37 +89,21 @@ export const HomeScreen: React.FC = () => {
     router.push({ pathname: AppRoutes.FAZENDAS });
   };
 
-  const ProfileAccess = () => (
-    <Button
-      fullWidth
-      onPress={() => router.push(AppRoutes.PROFILE as Href)}
-      style={styles.profileButton}
-      title="Meu Perfil"
-      variant="ghost"
-    />
-  );
+  const handleAreasPress = () => {
+    setAreasExpanded((prev) => !prev);
+  };
 
-  const CompactProfileAccess = () => (
-    <TouchableOpacity
-      accessibilityLabel="Abrir Meu Perfil"
-      accessibilityRole="button"
-      activeOpacity={0.75}
-      onPress={() => router.push(AppRoutes.PROFILE as Href)}
-      style={styles.compactProfileButton}
-    >
-      <Text style={styles.compactProfileText}>Perfil</Text>
-    </TouchableOpacity>
-  );
+  const handleContaPress = () => {
+    router.push(AppRoutes.PROFILE as unknown as Href);
+  };
 
-  const InvitesAccess = () => (
-    <Button
-      fullWidth
-      onPress={() => router.push(AppRoutes.INVITES as Href)}
-      style={styles.invitesButton}
-      title="Meus Convites"
-      variant="secondary"
-    />
-  );
+  const handleEquipePress = () => {
+    if (!activeFarmId) return;
+    router.push({
+      pathname: AppRoutes.FAZENDA_TEAM,
+      params: { fazendaId: activeFarmId },
+    } as unknown as Href);
+  };
 
   const StatCard = ({
     label,
@@ -159,15 +145,43 @@ export const HomeScreen: React.FC = () => {
     onPress: () => void;
     icon: string;
   }) => (
-    <Card
-      marginBottom={0}
+    <TouchableOpacity
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      activeOpacity={0.7}
       onPress={onPress}
-      padding={20}
       style={styles.quickActionCard}
     >
       <Text style={styles.quickActionIcon}>{icon}</Text>
       <Text style={styles.quickActionLabel}>{label}</Text>
-      <Text style={styles.quickActionCta}>→</Text>
+    </TouchableOpacity>
+  );
+
+  const AreasItemCard = ({
+    label,
+    description,
+    onPress,
+    icon,
+  }: {
+    label: string;
+    description: string;
+    onPress: () => void;
+    icon: string;
+  }) => (
+    <Card
+      accessibilityLabel={`Abrir ${label}`}
+      marginBottom={0}
+      onPress={onPress}
+      padding={14}
+      shadow={false}
+      style={styles.areasItemCard}
+    >
+      <Text style={styles.areasItemIcon}>{icon}</Text>
+      <View style={styles.areasItemText}>
+        <Text style={styles.areasItemLabel}>{label}</Text>
+        <Text style={styles.areasItemDescription}>{description}</Text>
+      </View>
+      <Text style={styles.areasItemCta}>→</Text>
     </Card>
   );
 
@@ -192,13 +206,14 @@ export const HomeScreen: React.FC = () => {
 
   const LatestEventsSection = () => (
     <View style={styles.latestEventsSection}>
-      <Text style={styles.sectionTitle}>Últimos Manejos</Text>
+      <Text style={styles.sectionTitle}>Atividades Recentes</Text>
       {latestEvents.length === 0 ? (
-        <Card padding={16} shadow={false} style={styles.latestEventsEmptyCard}>
-          <Text style={styles.latestEventsEmptyText}>
-            Nenhum manejo registrado ainda.
-          </Text>
-        </Card>
+        <EmptyState
+          subtitle="Os manejos registrados aparecerão aqui."
+          title="Nenhum manejo registrado ainda"
+          buttonText="Identificar para Manejo"
+          onPress={handleScanPress}
+        />
       ) : (
         latestEvents.map((event, index) => (
           <LatestEventCard
@@ -236,22 +251,34 @@ export const HomeScreen: React.FC = () => {
             />
           }
         >
-          <View style={styles.header}>
-            <Text style={styles.title}>Bem-vindo!</Text>
-            <Text style={styles.subtitle}>
-              Comece cadastrando sua primeira fazenda.
-            </Text>
+          <View style={styles.headerRow}>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>Bem-vindo!</Text>
+              <Text style={styles.subtitle}>
+                Comece cadastrando sua primeira fazenda.
+              </Text>
+            </View>
+            <TouchableOpacity
+              accessibilityLabel="Conta"
+              accessibilityRole="button"
+              activeOpacity={0.7}
+              onPress={handleContaPress}
+              style={styles.contaButton}
+            >
+              <View style={styles.contaAvatar}>
+                <Text style={styles.contaAvatarText}>👤</Text>
+              </View>
+              <Text style={styles.contaLabel}>Conta</Text>
+            </TouchableOpacity>
           </View>
           <Card shadow={false}>
             <EmptyState
               title="Nenhuma fazenda cadastrada"
               subtitle="Cadastre sua primeira fazenda para visualizar indicadores reais do sistema."
-              buttonText="Cadastrar fazenda"
+              buttonText="Nova Fazenda"
               onPress={handleNovaFazendaPress}
             />
           </Card>
-          <InvitesAccess />
-          <ProfileAccess />
         </ScrollView>
       </SafeAreaView>
     );
@@ -276,7 +303,18 @@ export const HomeScreen: React.FC = () => {
               Gerencie seu rebanho com facilidade.
             </Text>
           </View>
-          <CompactProfileAccess />
+          <TouchableOpacity
+            accessibilityLabel="Conta"
+            accessibilityRole="button"
+            activeOpacity={0.7}
+            onPress={handleContaPress}
+            style={styles.contaButton}
+          >
+            <View style={styles.contaAvatar}>
+              <Text style={styles.contaAvatarText}>👤</Text>
+            </View>
+            <Text style={styles.contaLabel}>Conta</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.farmSelectorSection}>
@@ -294,13 +332,13 @@ export const HomeScreen: React.FC = () => {
                 </Text>
               </View>
               <TouchableOpacity
-                accessibilityLabel="Trocar Fazenda"
+                accessibilityLabel="Abrir Minhas Fazendas"
                 accessibilityRole="button"
                 activeOpacity={0.75}
                 onPress={handleFazendasPress}
                 style={styles.changeFarmButton}
               >
-                <Text style={styles.changeFarmText}>Trocar Fazenda</Text>
+                <Text style={styles.changeFarmText}>Minhas Fazendas</Text>
               </TouchableOpacity>
             </View>
           </Card>
@@ -314,7 +352,7 @@ export const HomeScreen: React.FC = () => {
               label="Animais"
               onPress={handleInventarioPress}
               value={stats.animais}
-              actionLabel="Ver Inventário →"
+              actionLabel="Meu Rebanho →"
             />
             <StatCard
               label="Manejos"
@@ -326,30 +364,86 @@ export const HomeScreen: React.FC = () => {
               label="Fazendas"
               onPress={handleFazendasPress}
               value={stats.fazendas}
-              actionLabel="Gerenciar →"
+              actionLabel="Minhas Fazendas →"
             />
           </View>
         )}
 
-        <Button
-          fullWidth
-          icon={<Text style={styles.scanButtonIcon}>📸</Text>}
-          style={styles.scanButton}
-          onPress={handleScanPress}
-          title="Escanear Novo Brinco"
-        />
+        {!error && activeFarmId && stats.animais === 0 ? (
+          <Card
+            marginBottom={theme.spacing.lg}
+            padding={16}
+            shadow={false}
+            style={styles.guidanceCard}
+          >
+            <Text style={styles.guidanceTitle}>Rebanho vazio</Text>
+            <Text style={styles.guidanceText}>
+              Comece cadastrando ou identificando um animal.
+            </Text>
+          </Card>
+        ) : null}
+
+        <View style={styles.areasSection}>
+          <Card
+            accessibilityLabel={areasExpanded ? 'Recolher Áreas da Fazenda' : 'Abrir Áreas da Fazenda'}
+            marginBottom={0}
+            onPress={handleAreasPress}
+            padding={16}
+            shadow={false}
+            style={styles.areasCard}
+          >
+            <Text style={styles.areasIcon}>📋</Text>
+            <View style={styles.areasText}>
+              <Text style={styles.areasLabel}>Áreas da Fazenda</Text>
+              <Text style={styles.areasDescription}>
+                Rebanho, identificação, manejos e equipe
+              </Text>
+            </View>
+            <Text style={styles.areasCta}>
+              {areasExpanded ? '▾' : '▸'}
+            </Text>
+          </Card>
+          {areasExpanded && (
+            <View style={styles.areasItemsList}>
+              <AreasItemCard
+                label="Meu Rebanho"
+                description="Visualizar rebanho da fazenda ativa"
+                onPress={handleInventarioPress}
+                icon="🐄"
+              />
+              <AreasItemCard
+                label="Identificar Animal"
+                description="Ler QR Code ou informar o número identificador"
+                onPress={handleScanPress}
+                icon="📸"
+              />
+              <AreasItemCard
+                label="Manejos"
+                description="Acompanhar manejos e histórico"
+                onPress={handleManejosPress}
+                icon="🗓️"
+              />
+              <AreasItemCard
+                label="Equipe"
+                description="Ver membros da fazenda ativa"
+                onPress={handleEquipePress}
+                icon="👥"
+              />
+            </View>
+          )}
+        </View>
 
         <LatestEventsSection />
 
         <Text style={styles.sectionTitle}>Ações Rápidas</Text>
-        <View style={styles.quickActionsList}>
+        <View style={styles.quickActionsRow}>
           <QuickActionCard
-            label="Cadastrar Animal"
+            label="Novo Animal"
             onPress={handleCadastrarAnimalPress}
             icon="➕"
           />
           <QuickActionCard
-            label="Registrar Manejo"
+            label="Identificar para Manejo"
             onPress={handleScanPress}
             icon="📷"
           />
@@ -371,9 +465,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.lg,
-  },
-  header: {
-    marginBottom: theme.spacing.xl,
+    paddingBottom: theme.spacing.xxxl,
   },
   headerRow: {
     alignItems: 'flex-start',
@@ -395,19 +487,29 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.xxs,
   },
-  compactProfileButton: {
+  contaButton: {
     alignItems: 'center',
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.pill,
-    borderWidth: 1,
+    minHeight: 44,
+    minWidth: 44,
     justifyContent: 'center',
-    minHeight: theme.sizes.chipHeight,
-    paddingHorizontal: theme.spacing.md,
   },
-  compactProfileText: {
+  contaAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: theme.colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contaAvatarText: {
+    fontSize: 16,
+  },
+  contaLabel: {
+    fontSize: theme.typography.fontSize.xs,
     color: theme.colors.textAccent,
-    fontSize: theme.typography.fontSize.sm,
     fontWeight: theme.typography.fontWeight.semibold,
+    marginTop: 2,
+    textAlign: 'center',
   },
   farmSelectorSection: {
     marginBottom: theme.spacing.lg,
@@ -447,12 +549,6 @@ const styles = StyleSheet.create({
     color: theme.colors.textAccent,
     fontSize: theme.typography.fontSize.sm,
     fontWeight: theme.typography.fontWeight.semibold,
-  },
-  scanButton: {
-    marginBottom: theme.spacing.xl,
-  },
-  scanButtonIcon: {
-    fontSize: theme.sizes.iconSm,
   },
   statsRow: {
     flexDirection: 'row',
@@ -495,6 +591,86 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     color: theme.colors.textPrimary,
   },
+  guidanceCard: {
+    backgroundColor: theme.colors.surfaceAlt,
+    borderColor: theme.colors.borderSoft,
+  },
+  guidanceTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: theme.typography.fontWeight.bold,
+    marginBottom: theme.spacing.xxs,
+  },
+  guidanceText: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+    lineHeight: theme.typography.lineHeight.sm,
+  },
+  areasSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  areasCard: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.borderSoft,
+    flexDirection: 'row',
+  },
+  areasIcon: {
+    fontSize: theme.sizes.iconMd,
+    marginRight: theme.spacing.sm,
+  },
+  areasText: {
+    flex: 1,
+  },
+  areasLabel: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: theme.typography.fontWeight.bold,
+  },
+  areasDescription: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.xs,
+    lineHeight: theme.typography.lineHeight.sm,
+    marginTop: theme.spacing.xxs,
+  },
+  areasCta: {
+    color: theme.colors.textAccent,
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: theme.typography.fontWeight.bold,
+  },
+  areasItemsList: {
+    marginTop: theme.spacing.xs,
+    gap: theme.spacing.xs,
+  },
+  areasItemCard: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceAlt,
+    borderColor: theme.colors.borderSoft,
+    flexDirection: 'row',
+  },
+  areasItemIcon: {
+    fontSize: theme.sizes.iconMd,
+    marginRight: theme.spacing.sm,
+  },
+  areasItemText: {
+    flex: 1,
+  },
+  areasItemLabel: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.bold,
+  },
+  areasItemDescription: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.xs,
+    lineHeight: theme.typography.lineHeight.sm,
+    marginTop: theme.spacing.xxs,
+  },
+  areasItemCta: {
+    color: theme.colors.textAccent,
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: theme.typography.fontWeight.bold,
+  },
   latestEventsSection: {
     marginBottom: theme.spacing.xl,
   },
@@ -524,14 +700,6 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.sm,
     lineHeight: theme.typography.lineHeight.sm,
   },
-  latestEventsEmptyCard: {
-    backgroundColor: theme.colors.surfaceAlt,
-    borderColor: theme.colors.borderSoft,
-  },
-  latestEventsEmptyText: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.fontSize.sm,
-  },
   latestEventsCta: {
     alignSelf: 'flex-end',
     minHeight: theme.sizes.chipHeight,
@@ -543,33 +711,31 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.sm,
     fontWeight: theme.typography.fontWeight.bold,
   },
-  quickActionsList: {
+  quickActionsRow: {
+    flexDirection: 'row',
     gap: theme.spacing.sm,
-    marginBottom: theme.spacing.lg,
   },
   quickActionCard: {
-    flexDirection: 'row',
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 72,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.borderSoft,
+    backgroundColor: theme.colors.surfaceAlt,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
+    minWidth: 44,
   },
   quickActionIcon: {
     fontSize: theme.sizes.iconMd,
-    marginRight: theme.spacing.sm,
+    marginBottom: theme.spacing.xxs,
   },
   quickActionLabel: {
-    fontSize: theme.typography.fontSize.sm,
+    fontSize: theme.typography.fontSize.xs,
     fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.textPrimary,
-    flex: 1,
-  },
-  quickActionCta: {
-    color: theme.colors.textAccent,
-    fontSize: theme.typography.fontSize.md,
-    fontWeight: theme.typography.fontWeight.bold,
-  },
-  profileButton: {
-    marginTop: theme.spacing.md,
-  },
-  invitesButton: {
-    marginTop: theme.spacing.lg,
+    textAlign: 'center',
   },
 });
