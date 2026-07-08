@@ -46,7 +46,7 @@ export const ManejosScreen: React.FC = () => {
   const renderManejoItem = ({ item }: { item: Event }) => (
     <Card
       accessibilityLabel={`Abrir detalhes do manejo ${getEventTypeLabel(item.type)}`}
-      marginBottom={16}
+      marginBottom={theme.spacing.md}
       onPress={() => router.push(AppRoutes.ANIMAL_DETAIL(item.animalId))}
       style={styles.card}
     >
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: theme.spacing.sm,
   },
   typeBadge: {
     backgroundColor: theme.colors.primaryLight,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.xs,
   },
   cardContent: {
-    gap: 4,
+    gap: theme.spacing.xxs,
   },
   obsText: {
     fontSize: 13,

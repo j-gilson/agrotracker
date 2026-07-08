@@ -43,7 +43,7 @@ export const AnimalListScreen: React.FC = () => {
   const renderItem = ({ item }: { item: Animal }) => (
     <Card
       accessibilityLabel={`Abrir ficha do animal ${item.nome || item.codigoIdentificacao}`}
-      marginBottom={12}
+      marginBottom={theme.spacing.sm}
       onPress={() => router.push(AppRoutes.ANIMAL_DETAIL(item.id))}
       style={styles.card}
     >

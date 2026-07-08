@@ -70,7 +70,7 @@ export const InvitesScreen: React.FC = () => {
           message:
             err instanceof Error
               ? err.message
-              : 'Nao foi possivel aceitar o convite.',
+              : 'Não foi possível aceitar o convite.',
           variant: 'error',
         });
       }
@@ -83,7 +83,7 @@ export const InvitesScreen: React.FC = () => {
       try {
         await reject(inviteId);
         showSnackbar({
-          message: 'Convite recusado.',
+          message: 'Convite recusado com sucesso.',
           variant: 'success',
         });
       } catch (err: unknown) {
@@ -91,7 +91,7 @@ export const InvitesScreen: React.FC = () => {
           message:
             err instanceof Error
               ? err.message
-              : 'Nao foi possivel recusar o convite.',
+              : 'Não foi possível recusar o convite.',
           variant: 'error',
         });
       }
@@ -103,7 +103,7 @@ export const InvitesScreen: React.FC = () => {
     const processing = processingId === item.id;
 
     return (
-      <Card marginBottom={12} style={styles.card}>
+      <Card marginBottom={theme.spacing.sm} style={styles.card}>
         <Text style={styles.farmName}>
           {item.fazendaNome ?? 'Fazenda'}
         </Text>
@@ -111,21 +111,21 @@ export const InvitesScreen: React.FC = () => {
           <Text style={styles.detail}>
             Papel proposto: {roleLabels[item.role]}
           </Text>
-          <Text style={styles.detail}>Status: PENDENTE</Text>
+          <Text style={styles.detail}>Status: Pendente</Text>
           <Text style={styles.detail}>
             Data: {item.createdAt.toLocaleDateString('pt-BR')}
           </Text>
         </View>
         <View style={styles.actions}>
           <Button
-            title="Aceitar"
+            title="Aceitar convite"
             onPress={() => handleAccept(item)}
             loading={processing}
             disabled={Boolean(processingId)}
             style={styles.action}
           />
           <Button
-            title="Recusar"
+            title="Recusar convite"
             onPress={() => handleReject(item.id)}
             variant="danger"
             disabled={Boolean(processingId)}
@@ -149,7 +149,6 @@ export const InvitesScreen: React.FC = () => {
       <PageHeader
         title="Meus Convites"
         subtitle="Convites pendentes enviados para seu e-mail"
-        variant="banner"
       />
       <FlatList
         data={invites}
@@ -157,8 +156,8 @@ export const InvitesScreen: React.FC = () => {
         renderItem={renderItem}
         ListEmptyComponent={
           <EmptyState
-            title="Nenhum convite pendente"
-            subtitle="Quando uma fazenda convidar você, o convite aparecerá aqui."
+            title="Nenhum convite encontrado"
+            subtitle="Quando houver convites disponíveis, eles aparecerão aqui."
           />
         }
         contentContainerStyle={styles.list}
