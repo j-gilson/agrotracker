@@ -9,14 +9,20 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { FazendaMember } from '../../domain/membership/entities/FazendaMember';
 import { MemberRole } from '../../domain/membership/types';
 import { theme } from '../../core/theme';
+import { AppRoutes } from '../../core/routes/AppRoutes';
 import { Button, Card, EmptyState, ErrorState, Loading, useSnackbar } from '../components';
 import { useTeamManagement } from '../viewmodels/useTeamManagement';
 
 const SAFE_TOP = Platform.select({ android: (StatusBar.currentHeight ?? 24), default: 0 });
+
+const roleLabels: Record<MemberRole, string> = {
+  ADMIN: 'Administrador',
+  FUNCIONARIO: 'Funcionário',
+};
 
 export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }) => {
   const { members, loading, error, refresh, changeRole, toggleActive, remove, currentMember } =
@@ -39,9 +45,9 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
     async (memberId: string, role: MemberRole) => {
       try {
         await changeRole(memberId, role);
-        showSnackbar({ message: 'Papel atualizado com sucesso.', variant: 'success' });
+        showSnackbar({ message: 'Alterações salvas com sucesso.', variant: 'success' });
       } catch (err: unknown) {
-        showSnackbar({ message: err instanceof Error ? err.message : 'Erro ao atualizar papel.', variant: 'error' });
+        showSnackbar({ message: err instanceof Error ? err.message : 'Não foi possível salvar as alterações.', variant: 'error' });
       }
     },
     [changeRole, showSnackbar]
@@ -51,9 +57,9 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
     async (memberId: string) => {
       try {
         await toggleActive(memberId);
-        showSnackbar({ message: 'Status atualizado com sucesso.', variant: 'success' });
+        showSnackbar({ message: 'Alterações salvas com sucesso.', variant: 'success' });
       } catch (err: unknown) {
-        showSnackbar({ message: err instanceof Error ? err.message : 'Erro ao atualizar membro.', variant: 'error' });
+        showSnackbar({ message: err instanceof Error ? err.message : 'Não foi possível salvar as alterações.', variant: 'error' });
       }
     },
     [showSnackbar, toggleActive]
@@ -65,7 +71,7 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
         await remove(memberId);
         showSnackbar({ message: 'Membro removido com sucesso.', variant: 'success' });
       } catch (err: unknown) {
-        showSnackbar({ message: err instanceof Error ? err.message : 'Erro ao remover membro.', variant: 'error' });
+        showSnackbar({ message: err instanceof Error ? err.message : 'Não foi possível remover o membro.', variant: 'error' });
       }
     },
     [remove, showSnackbar]
@@ -77,7 +83,7 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
     const nextRole: MemberRole = item.role === 'ADMIN' ? 'FUNCIONARIO' : 'ADMIN';
 
     return (
-      <Card marginBottom={12} padding={14} style={styles.card}>
+      <Card marginBottom={theme.spacing.sm} padding={14} style={styles.card}>
         <View style={styles.rowTop}>
           <View style={styles.info}>
             <Text style={styles.name}>
@@ -88,10 +94,10 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
           </View>
           <View style={styles.badges}>
             <Text style={[styles.badge, item.role === 'ADMIN' ? styles.badgeAdmin : styles.badgeFuncionario]}>
-              {item.role}
+              {roleLabels[item.role]}
             </Text>
             <Text style={[styles.badge, item.active ? styles.badgeActive : styles.badgeInactive]}>
-              {item.active ? 'ATIVO' : 'INATIVO'}
+              {item.active ? 'Ativo' : 'Inativo'}
             </Text>
           </View>
         </View>
@@ -100,7 +106,7 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
           <View style={styles.actions}>
             <Button
               onPress={() => handleChangeRole(item.id, nextRole)}
-              title={item.role === 'ADMIN' ? 'Rebaixar' : 'Promover'}
+              title={item.role === 'ADMIN' ? 'Alterar para Funcionário' : 'Alterar para Administrador'}
               variant="secondary"
               style={styles.action}
             />
@@ -125,8 +131,10 @@ export const MembersListScreen: React.FC<{ fazendaId: string }> = ({ fazendaId }
 
   const renderEmpty = () => (
     <EmptyState
-      title="Nenhum membro encontrado."
-      subtitle="Convide funcionários para participar desta fazenda."
+      title="Nenhum membro encontrado"
+      subtitle="Os membros da fazenda aparecerão aqui."
+      buttonText="Convidar membro"
+      onPress={() => router.push({ pathname: AppRoutes.FAZENDA_TEAM_INVITE, params: { fazendaId } } as unknown as Href)}
     />
   );
 
@@ -164,7 +172,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.backgroundMuted,
   },
   listContainer: {
-    padding: theme.spacing.sm,
+    padding: theme.spacing.md,
     flexGrow: 1,
   },
   card: {
