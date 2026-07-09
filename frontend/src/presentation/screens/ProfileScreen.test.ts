@@ -114,14 +114,13 @@ describe('Sprint 7.3.2.2 — Perfil e Logout', () => {
 
   it('Cenario 6: acesso ao Perfil existe com e sem fazendas', () => {
     const content = readFileSync(homeScreenPath, 'utf-8');
-    const profileAccessCount = content.split('<ProfileAccess />').length - 1;
-    const compactProfileAccessCount =
-      content.split('<CompactProfileAccess />').length - 1;
 
     expect(content).toContain('if (farms.length === 0)');
-    expect(content).toContain('router.push(AppRoutes.PROFILE as Href)');
-    expect(profileAccessCount).toBe(1);
-    expect(compactProfileAccessCount).toBe(1);
+    expect(content).toContain('accessibilityLabel="Conta"');
+    expect(content).toContain('onPress={handleContaPress}');
+    expect(content).toContain('router.push(AppRoutes.PROFILE as unknown as Href)');
+    expect(content).not.toContain('<ProfileAccess />');
+    expect(content).not.toContain('<CompactProfileAccess />');
   });
 });
 

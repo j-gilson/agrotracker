@@ -47,15 +47,14 @@ export const useScanner = (fazendaId: string | null) => {
     setError(null);
   }, []);
 
-  const handleBarCodeScanned = useCallback(
-    async ({ data }: { type: string; data: string }) => {
-      if (scanLockRef.current || status !== 'aguardando') return;
-
-      const code = data.trim();
+  const identifyAnimalByCode = useCallback(
+    async (rawCode: string) => {
+      const code = rawCode.trim();
       if (!code) return;
+
       if (!fazendaId) {
         setStatus('erro');
-        setError('Selecione uma fazenda antes de escanear.');
+        setError('Selecione uma fazenda antes de identificar o animal.');
         return;
       }
 
@@ -77,11 +76,30 @@ export const useScanner = (fazendaId: string | null) => {
       } catch (err: unknown) {
         setStatus('erro');
         setError(
-          humanizeError(err, 'Nao foi possivel consultar o codigo escaneado.')
+          humanizeError(err, 'Não foi possível consultar o número identificador informado.')
         );
       }
     },
-    [getAnimalByCodigo, fazendaId, status]
+    [fazendaId, getAnimalByCodigo]
+  );
+
+  const handleBarCodeScanned = useCallback(
+    async ({ data }: { type: string; data: string }) => {
+      if (scanLockRef.current || status !== 'aguardando') return;
+
+      await identifyAnimalByCode(data);
+    },
+    [identifyAnimalByCode, status]
+  );
+
+  const searchByIdentifier = useCallback(
+    async (code: string) => {
+      if (status === 'consultando' || status === 'encontrado') return;
+
+      scanLockRef.current = false;
+      await identifyAnimalByCode(code);
+    },
+    [identifyAnimalByCode, status]
   );
 
   const openAnimalRegistration = useCallback(() => {
@@ -102,6 +120,7 @@ export const useScanner = (fazendaId: string | null) => {
     codigoIdentificacao,
     error,
     handleBarCodeScanned,
+    searchByIdentifier,
     openAnimalRegistration,
     toggleFlashlight: () => setIsFlashlightOn((current) => !current),
     resetScanner,

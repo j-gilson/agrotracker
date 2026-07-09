@@ -10,7 +10,7 @@ import {
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { theme } from '../../core/theme';
 import { AppRoutes } from '../../core/routes/AppRoutes';
-import { RoleGuard, Button, Card, ErrorState, PageHeader } from '../components';
+import { RoleGuard, Card, ErrorState, PageHeader } from '../components';
 import { MembersListScreen } from './MembersListScreen';
 import { usePermissions } from '../../core/auth/usePermissions';
 

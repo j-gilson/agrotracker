@@ -17,26 +17,26 @@ const emptyHomeContent = content.slice(emptyStateStart, emptyHomeEnd);
 const normalHomeContent = content.slice(emptyHomeEnd);
 
 describe('Sprint 7.3.2.3 — primeiro acesso sem fazendas', () => {
-  it('Cenario 1: exibe Cadastrar fazenda sem fazendas', () => {
-    expect(emptyHomeContent).toContain('buttonText="Cadastrar fazenda"');
+  it('Cenario 1: exibe Nova Fazenda sem fazendas', () => {
+    expect(emptyHomeContent).toContain('buttonText="Nova Fazenda"');
   });
 
-  it('Cenario 2: exibe Meus Convites sem fazendas', () => {
-    expect(emptyHomeContent).toContain('<InvitesAccess />');
-    expect(content).toContain('title="Meus Convites"');
+  it('Cenario 2: nao exibe acesso direto a Convites sem fazendas', () => {
+    expect(emptyHomeContent).not.toContain('<InvitesAccess />');
+    expect(content).not.toContain('title="Meus Convites"');
   });
 
-  it('Cenario 3: exibe Meu Perfil sem fazendas', () => {
-    expect(emptyHomeContent).toContain('<ProfileAccess />');
-    expect(content).toContain('title="Meu Perfil"');
+  it('Cenario 3: exibe acesso compacto a Conta sem fazendas', () => {
+    expect(emptyHomeContent).toContain('accessibilityLabel="Conta"');
+    expect(emptyHomeContent).toContain('onPress={handleContaPress}');
   });
 
-  it('Cenario 4: Convites navega para AppRoutes.INVITES', () => {
-    expect(content).toContain('router.push(AppRoutes.INVITES as Href)');
+  it('Cenario 4: Convites nao fica exposto na Home', () => {
+    expect(content).not.toContain('router.push(AppRoutes.INVITES as Href)');
   });
 
-  it('Cenario 5: Perfil navega para AppRoutes.PROFILE', () => {
-    expect(content).toContain('router.push(AppRoutes.PROFILE as Href)');
+  it('Cenario 5: Conta navega para AppRoutes.PROFILE', () => {
+    expect(content).toContain('router.push(AppRoutes.PROFILE as unknown as Href)');
   });
 
   it('Cenario 6: criacao de fazenda permanece inalterada', () => {
@@ -71,9 +71,9 @@ describe('Sprint 7.4.2 — atualizacao automatica da Home', () => {
 });
 
 describe('Sprint 7.4.3.2.1 — estatisticas navegaveis da Home', () => {
-  it('Animais navega para Inventario mantendo o valor da estatistica', () => {
+  it('Animais navega para Meu Rebanho mantendo o valor da estatistica', () => {
     expect(content).toContain('const handleInventarioPress = () => {');
-    expect(content).toContain('pathname: AppRoutes.INVENTARIO');
+    expect(content).toContain('pathname: AppRoutes.ANIMAL_LIST');
     expect(content).toContain('label="Animais"');
     expect(content).toContain('onPress={handleInventarioPress}');
     expect(content).toContain('value={stats.animais}');
@@ -99,37 +99,37 @@ describe('Sprint 7.4.3.2.1 — estatisticas navegaveis da Home', () => {
     expect(content).toContain('accessibilityRole="button"');
     expect(content).toContain('accessibilityLabel={`${label}: ${value}. Abrir ${label}`}');
     expect(content).toContain('styles.statAffordance');
-    expect(content).toContain('actionLabel="Ver Inventário →"');
+    expect(content).toContain('actionLabel="Meu Rebanho →"');
     expect(content).toContain('actionLabel="Ver Manejos →"');
-    expect(content).toContain('actionLabel="Gerenciar →"');
+    expect(content).toContain('actionLabel="Minhas Fazendas →"');
   });
 
   it('nao altera a Home vazia', () => {
-    expect(emptyHomeContent).toContain('<InvitesAccess />');
-    expect(emptyHomeContent).toContain('<ProfileAccess />');
+    expect(emptyHomeContent).toContain('accessibilityLabel="Conta"');
+    expect(emptyHomeContent).toContain('buttonText="Nova Fazenda"');
     expect(emptyHomeContent).not.toContain('<StatCard');
   });
 });
 
 describe('Sprint 7.4.4.1 — reorganizacao UX da Home', () => {
-  it('usa acesso compacto ao perfil no header da Home com fazendas', () => {
-    expect(normalHomeContent).toContain('<CompactProfileAccess />');
+  it('usa acesso compacto a Conta no header da Home com fazendas', () => {
+    expect(normalHomeContent).toContain('accessibilityLabel="Conta"');
     expect(normalHomeContent).not.toContain('<ProfileAccess />');
-    expect(content).toContain('accessibilityLabel="Abrir Meu Perfil"');
-    expect(content).toContain('router.push(AppRoutes.PROFILE as Href)');
+    expect(content).toContain('onPress={handleContaPress}');
+    expect(content).toContain('router.push(AppRoutes.PROFILE as unknown as Href)');
   });
 
   it('exibe bloco visual de Fazenda Ativa com acao de troca', () => {
     expect(normalHomeContent).toContain('styles.activeFarmCard');
     expect(normalHomeContent).toContain('Fazenda Ativa');
     expect(normalHomeContent).toContain('activeFarm?.nome');
-    expect(normalHomeContent).toContain('Trocar Fazenda');
+    expect(normalHomeContent).toContain('Minhas Fazendas');
     expect(normalHomeContent).toContain('onPress={handleFazendasPress}');
   });
 
   it('remove chips horizontais e mantem troca de fazenda pelo bloco de contexto', () => {
     expect(normalHomeContent).toContain('styles.activeFarmCard');
-    expect(normalHomeContent).toContain('Trocar Fazenda');
+    expect(normalHomeContent).toContain('Minhas Fazendas');
     expect(normalHomeContent).toContain('onPress={handleFazendasPress}');
     expect(normalHomeContent).not.toContain('styles.farmChipsContainer');
     expect(normalHomeContent).not.toContain('farms.map');
@@ -140,15 +140,15 @@ describe('Sprint 7.4.4.1 — reorganizacao UX da Home', () => {
     const headerIndex = normalHomeContent.indexOf('styles.headerRow');
     const farmIndex = normalHomeContent.indexOf('styles.farmSelectorSection');
     const statsIndex = normalHomeContent.indexOf('styles.statsRow');
-    const scannerIndex = normalHomeContent.indexOf('styles.scanButton');
+    const areasIndex = normalHomeContent.indexOf('styles.areasSection');
     const latestEventsIndex = normalHomeContent.indexOf('<LatestEventsSection />');
     const quickActionsIndex = normalHomeContent.indexOf('Ações Rápidas');
 
     expect(headerIndex).toBeGreaterThan(-1);
     expect(farmIndex).toBeGreaterThan(headerIndex);
     expect(statsIndex).toBeGreaterThan(farmIndex);
-    expect(scannerIndex).toBeGreaterThan(statsIndex);
-    expect(latestEventsIndex).toBeGreaterThan(scannerIndex);
+    expect(areasIndex).toBeGreaterThan(statsIndex);
+    expect(latestEventsIndex).toBeGreaterThan(areasIndex);
     expect(quickActionsIndex).toBeGreaterThan(latestEventsIndex);
   });
 
@@ -159,9 +159,9 @@ describe('Sprint 7.4.4.1 — reorganizacao UX da Home', () => {
 });
 
 describe('Sprint 7.4.4.2 — ultimos manejos na Home', () => {
-  it('exibe a secao apos o scanner e antes das acoes rapidas', () => {
+  it('exibe a secao apos areas da fazenda e antes das acoes rapidas', () => {
     expect(normalHomeContent).toContain('<LatestEventsSection />');
-    expect(content).toContain('Últimos Manejos');
+    expect(content).toContain('Atividades Recentes');
     expect(content).toContain('latestEvents.map');
     expect(content).toContain('formatDate(event.date)');
     expect(content).toContain('numberOfLines={2}');
@@ -176,9 +176,9 @@ describe('Sprint 7.4.4.2 — ultimos manejos na Home', () => {
   });
 
   it('exibe estado vazio compacto e CTA para todos os manejos', () => {
-    expect(content).toContain('Nenhum manejo registrado ainda.');
-    expect(content).toContain('styles.latestEventsEmptyCard');
-    expect(content).not.toContain('<EmptyState title="Nenhum manejo registrado ainda."');
+    expect(content).toContain('Nenhum manejo registrado ainda');
+    expect(content).toContain('buttonText="Identificar para Manejo"');
+    expect(content).toContain('<EmptyState');
     expect(content).toContain('Ver todos os manejos →');
     expect(content).toContain('onPress={handleManejosPress}');
   });
@@ -188,15 +188,15 @@ describe('Sprint 7.4.4.7.3 e 7.4.4.7.4 — ajustes finais da Home', () => {
   it('mantem a fazenda ativa clara sem chips duplicados', () => {
     expect(content).toContain('Fazenda Ativa');
     expect(content).toContain('activeFarm?.nome');
-    expect(content).toContain('Trocar Fazenda');
+    expect(content).toContain('Minhas Fazendas');
     expect(content).not.toContain('styles.farmChip');
     expect(content).not.toContain('styles.farmChipActive');
     expect(content).not.toContain('styles.farmChipText');
   });
 
   it('transforma acoes rapidas em acoes de criacao', () => {
-    expect(content).toContain('label="Cadastrar Animal"');
-    expect(content).toContain('label="Registrar Manejo"');
+    expect(content).toContain('label="Novo Animal"');
+    expect(content).toContain('label="Identificar para Manejo"');
     expect(content).toContain('label="Nova Fazenda"');
     expect(content).not.toContain('label="Inventário"');
   });
@@ -209,10 +209,9 @@ describe('Sprint 7.4.4.7.3 e 7.4.4.7.4 — ajustes finais da Home', () => {
     expect(content).toContain('onPress={handleNovaFazendaPress}');
   });
 
-  it('usa cards horizontais com seta visual nas acoes rapidas', () => {
-    expect(content).toContain('styles.quickActionsList');
-    expect(content).toContain('styles.quickActionCta');
-    expect(content).toContain('→');
-    expect(content).not.toContain('styles.quickActionsRow');
+  it('usa cards compactos nas acoes rapidas', () => {
+    expect(content).toContain('styles.quickActionsRow');
+    expect(content).toContain('styles.quickActionCard');
+    expect(content).not.toContain('styles.quickActionsList');
   });
 });

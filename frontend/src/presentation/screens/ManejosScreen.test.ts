@@ -15,7 +15,7 @@ describe('Sprint 7.4.4.4.2 — melhorias UX da tela de Manejos', () => {
     expect(content).toContain(
       'subtitle="Selecione uma fazenda para visualizar e registrar manejos."'
     );
-    expect(content).toContain('buttonText="Selecionar Fazenda"');
+    expect(content).toContain('buttonText="Minhas Fazendas"');
     expect(content).toContain(
       'onPress={() => router.push({ pathname: AppRoutes.FAZENDAS })}'
     );
@@ -27,7 +27,7 @@ describe('Sprint 7.4.4.4.2 — melhorias UX da tela de Manejos', () => {
     expect(content).toContain(
       'router.push(AppRoutes.SCANNER_WITH_FAZENDA(activeFarmId))'
     );
-    expect(content).toContain('title="Escanear para Novo Manejo"');
+    expect(content).toContain('title="Identificar para Manejo"');
     expect(content).not.toContain("title={activeFarmId ? 'Novo Manejo'");
   });
 

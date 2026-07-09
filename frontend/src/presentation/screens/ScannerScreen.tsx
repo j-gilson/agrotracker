@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Platform, StatusBar } from 'react-native';
 import { CameraView } from 'expo-camera';
 import {
@@ -12,6 +12,7 @@ import {
   Card,
   EmptyState,
   ErrorState,
+  Input,
   Loading,
   PageHeader,
 } from '../components';
@@ -34,6 +35,8 @@ export function ScannerScreen() {
 
   const { farms, activeFarmId, loading: farmsLoading } = useActiveFarm();
   const fazendaId = routeFazendaId || activeFarmId || null;
+  const [manualIdentifier, setManualIdentifier] = useState('');
+  const [manualError, setManualError] = useState<string | undefined>();
 
   const hasFocusedOnce = useRef(false);
   const {
@@ -45,6 +48,7 @@ export function ScannerScreen() {
     isFlashlightOn,
     toggleFlashlight,
     handleBarCodeScanned,
+    searchByIdentifier,
     resetScanner,
     openAnimalRegistration,
   } = useScanner(fazendaId);
@@ -59,6 +63,25 @@ export function ScannerScreen() {
       resetScanner();
     }, [resetScanner]),
   );
+
+  const canSearch = status !== 'consultando' && status !== 'encontrado';
+
+  const handleManualSearch = () => {
+    const identifier = manualIdentifier.trim();
+
+    if (!identifier) {
+      setManualError('Informe o número identificador do animal.');
+      return;
+    }
+
+    setManualError(undefined);
+    void searchByIdentifier(identifier);
+  };
+
+  const handleResetScanner = () => {
+    setManualError(undefined);
+    resetScanner();
+  };
 
   if (hasPermission === null) {
     return <Loading text="Verificando permissão da câmera..." />;
@@ -112,8 +135,8 @@ export function ScannerScreen() {
       showsVerticalScrollIndicator={false}
     >
       <PageHeader
-        title="Scanner"
-        subtitle="Leia o código de identificação do animal"
+        title="Identificar Animal"
+        subtitle="Use o QR Code ou informe o número identificador do animal."
         rightAction={
           <Button
             title={isFlashlightOn ? 'Desligar flash' : 'Ligar flash'}
@@ -122,6 +145,32 @@ export function ScannerScreen() {
           />
         }
       />
+
+      <Card padding={18} shadow={false} style={styles.manualSearchCard}>
+        <Text style={styles.manualSearchTitle}>Pesquisar por número identificador</Text>
+        <Input
+          accessibilityHint="Informe o número identificador do animal para pesquisar sem usar a câmera."
+          autoCapitalize="characters"
+          error={manualError}
+          label="Número identificador"
+          onChangeText={(value) => {
+            setManualIdentifier(value);
+            if (manualError) setManualError(undefined);
+          }}
+          onSubmitEditing={handleManualSearch}
+          placeholder="Ex: BRINCO-001"
+          returnKeyType="search"
+          value={manualIdentifier}
+        />
+        <Button
+          accessibilityLabel="Pesquisar animal por número identificador"
+          disabled={!canSearch}
+          fullWidth
+          loading={status === 'consultando'}
+          onPress={handleManualSearch}
+          title="Pesquisar"
+        />
+      </Card>
 
       <View style={styles.cameraContainer}>
         <CameraView
@@ -152,7 +201,7 @@ export function ScannerScreen() {
       ) : null}
 
       {status === 'consultando' ? (
-        <Loading text="Consultando animal..." />
+        <Loading text="Identificando animal..." />
       ) : null}
 
       {status === 'encontrado' ? (
@@ -169,17 +218,17 @@ export function ScannerScreen() {
             />
             <Text style={styles.resultTitle}>Animal não cadastrado</Text>
             <Text style={styles.resultText}>
-              Código lido: {codigoIdentificacao}
+              Número identificador: {codigoIdentificacao}
             </Text>
             <Button
-              title="Cadastrar Animal"
+              title="Novo Animal"
               onPress={openAnimalRegistration}
               fullWidth
             />
             <Button
-              title="Escanear novamente"
+              title="Identificar novamente"
               variant="secondary"
-              onPress={resetScanner}
+              onPress={handleResetScanner}
               fullWidth
             />
           </View>
@@ -189,8 +238,8 @@ export function ScannerScreen() {
       {status === 'erro' ? (
         <ErrorState
           message={error ?? 'Não foi possível consultar o animal.'}
-          retryText="Escanear novamente"
-          onRetry={resetScanner}
+          retryText="Identificar novamente"
+          onRetry={handleResetScanner}
         />
       ) : null}
     </ScrollView>
@@ -214,6 +263,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.lg,
     backgroundColor: colors.background,
+  },
+  manualSearchCard: {
+    borderColor: colors.borderSoft,
+  },
+  manualSearchTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: spacing.sm,
   },
   cameraContainer: {
     minHeight: 380,
