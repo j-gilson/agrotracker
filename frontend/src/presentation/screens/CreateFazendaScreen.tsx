@@ -104,7 +104,7 @@ export const CreateFazendaScreen: React.FC = () => {
             fullWidth
             loading={loading}
             onPress={handleCreate}
-            title="Salvar Fazenda"
+            title="Salvar"
           />
         </Card>
       </ScrollView>

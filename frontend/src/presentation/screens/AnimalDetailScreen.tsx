@@ -146,7 +146,7 @@ export const AnimalDetailScreen: React.FC = () => {
 
         {animal?.fazendaId ? (
           <Button
-            title="Registrar Manejo"
+            title="Novo Manejo"
             variant="secondary"
             onPress={() =>
               router.push(

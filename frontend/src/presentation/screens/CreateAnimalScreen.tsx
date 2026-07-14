@@ -123,7 +123,7 @@ export const CreateAnimalScreen: React.FC = () => {
           <Input
             autoCapitalize="characters"
             error={codigoError}
-            label="Código de Identificação"
+            label="Número identificador"
             onChangeText={setCodigoIdentificacao}
             placeholder="Ex: BRINCO-001"
             returnKeyType="next"
@@ -191,7 +191,7 @@ export const CreateAnimalScreen: React.FC = () => {
 
           <Button
             fullWidth
-            title="Cadastrar Animal"
+            title="Salvar"
             onPress={handleCreate}
             loading={loading}
             disabled={loading || !isFormValid}

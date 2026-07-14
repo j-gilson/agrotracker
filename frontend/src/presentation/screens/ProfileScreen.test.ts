@@ -233,7 +233,7 @@ describe('Sprint 7.4.4.8.3 — perfil com funcao na fazenda ativa', () => {
     const content = readFileSync(profileScreenPath, 'utf-8');
 
     expect(content).toContain('FAZENDA ATIVA');
-    expect(content).toContain("activeFarm?.nome ?? 'Nenhuma fazenda selecionada'");
+    expect(content).toContain("activeFarm?.nome ?? 'Nenhuma Fazenda Ativa'");
   });
 
   it('exibe secao Funcao na Fazenda Ativa com label amigavel', () => {
@@ -241,7 +241,7 @@ describe('Sprint 7.4.4.8.3 — perfil com funcao na fazenda ativa', () => {
 
     expect(content).toContain('FUNÇÃO NA FAZENDA ATIVA');
     expect(content).toContain('ROLE_LABELS[role]');
-    expect(content).toContain("roleLabel ?? 'Nenhuma fazenda selecionada'");
+    expect(content).toContain("roleLabel ?? 'Nenhuma Fazenda Ativa'");
   });
 
   it('mapeia ADMIN para Administrador e FUNCIONARIO para Funcionario', () => {
@@ -254,7 +254,7 @@ describe('Sprint 7.4.4.8.3 — perfil com funcao na fazenda ativa', () => {
   it('exibe fallback quando nao ha fazenda ativa', () => {
     const content = readFileSync(profileScreenPath, 'utf-8');
 
-    expect(content).toContain("'Nenhuma fazenda selecionada'");
+    expect(content).toContain("'Nenhuma Fazenda Ativa'");
   });
 
   it('adiciona secoes entre identidade e CONTA mantendo layout existente', () => {

@@ -39,8 +39,8 @@ describe('Sprint 7.4.4.5.2 — melhorias UX da ficha do animal', () => {
   });
 
   it('altera apenas o texto da acao principal de manejo', () => {
-    expect(content).toContain('title="Registrar Manejo"');
+    expect(content).toContain('title="Novo Manejo"');
     expect(content).toContain('AppRoutes.CREATE_EVENT');
-    expect(content).not.toContain('title="Novo Manejo"');
+    expect(content).not.toContain('title="Registrar Manejo"');
   });
 });

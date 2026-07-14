@@ -64,14 +64,14 @@ export const ProfileScreen: React.FC = () => {
 
   const userName = user?.nome ?? 'Não informado';
   const userEmail = user?.email ?? 'Não informado';
-  const farmName = activeFarm?.nome ?? 'Nenhuma fazenda selecionada';
+  const farmName = activeFarm?.nome ?? 'Nenhuma Fazenda Ativa';
   const roleLabel = role ? ROLE_LABELS[role] : null;
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
       <View style={styles.content}>
         <PageHeader
-          title="Meu Perfil"
+          title="Conta"
           subtitle="Gerencie sua conta e acesso"
         />
 
@@ -90,7 +90,7 @@ export const ProfileScreen: React.FC = () => {
 
         <View style={styles.infoSection}>
           <Text style={styles.sectionLabel}>FUNÇÃO NA FAZENDA ATIVA</Text>
-          <Text style={styles.infoValue}>{roleLabel ?? 'Nenhuma fazenda selecionada'}</Text>
+          <Text style={styles.infoValue}>{roleLabel ?? 'Nenhuma Fazenda Ativa'}</Text>
         </View>
 
         <View style={styles.section}>

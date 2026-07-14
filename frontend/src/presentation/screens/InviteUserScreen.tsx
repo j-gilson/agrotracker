@@ -103,7 +103,7 @@ const InviteUserContent: React.FC<{ fazendaId: string }> = ({ fazendaId }) => {
             fullWidth
             loading={loading}
             onPress={handleSubmit}
-            title="Confirmar convite"
+            title="Enviar convite"
           />
 
           {error ? <ErrorState message={error} /> : null}
