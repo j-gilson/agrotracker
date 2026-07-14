@@ -17,6 +17,7 @@ interface CardProps {
   marginBottom?: number;
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
+  accessibilityState?: { selected?: boolean; disabled?: boolean; busy?: boolean };
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -27,6 +28,7 @@ export const Card: React.FC<CardProps> = ({
   marginBottom = 0,
   style,
   accessibilityLabel,
+  accessibilityState,
 }) => {
   const content = (
     <View
@@ -49,6 +51,7 @@ export const Card: React.FC<CardProps> = ({
     <Pressable
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
+      accessibilityState={accessibilityState}
       onPress={onPress}
       style={({ pressed }) => [
         styles.pressable,
