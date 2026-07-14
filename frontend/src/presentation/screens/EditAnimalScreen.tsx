@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  KeyboardAvoidingView,
   Pressable,
   Platform,
   StatusBar,
@@ -113,7 +114,15 @@ export const EditAnimalScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+        keyboardVerticalOffset={SAFE_TOP}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
         <PageHeader
           title="Editar Animal"
           subtitle={animal?.codigoIdentificacao}
@@ -206,7 +215,8 @@ export const EditAnimalScreen: React.FC = () => {
             disabled={saving || !isFormValid || !hasChanges}
           />
         </Card>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -215,6 +225,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
+  },
+  flex: {
+    flex: 1,
   },
   scrollContainer: {
     padding: theme.spacing.lg,

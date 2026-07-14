@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
   Pressable,
 } from 'react-native';
@@ -69,7 +70,10 @@ export const RegisterScreen: React.FC = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.inner}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Criar conta</Text>
           <Text style={styles.subtitle}>Cadastre-se para acessar sua fazenda</Text>
@@ -145,7 +149,7 @@ export const RegisterScreen: React.FC = () => {
             <Text style={styles.signInText}>Entrar</Text>
           </Pressable>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -157,6 +161,11 @@ const styles = StyleSheet.create({
   },
   inner: {
     flex: 1,
+    padding: theme.spacing.xl,
+    justifyContent: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
     padding: theme.spacing.xl,
     justifyContent: 'center',
   },

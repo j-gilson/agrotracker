@@ -3,6 +3,7 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  KeyboardAvoidingView,
   Platform,
   StatusBar,
 } from 'react-native';
@@ -71,7 +72,15 @@ export const CreateFazendaScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: SAFE_TOP }]}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+        keyboardVerticalOffset={SAFE_TOP}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
         <PageHeader
           title="Nova Fazenda"
           subtitle="Registre uma nova propriedade rural"
@@ -107,7 +116,8 @@ export const CreateFazendaScreen: React.FC = () => {
             title="Salvar"
           />
         </Card>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -116,6 +126,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.backgroundMuted,
+  },
+  flex: {
+    flex: 1,
   },
   scrollContainer: {
     padding: theme.spacing.lg,

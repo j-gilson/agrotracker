@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, Platform, StatusBar } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View, Platform, StatusBar, KeyboardAvoidingView } from 'react-native';
 import { CameraView } from 'expo-camera';
 import {
   useFocusEffect,
@@ -130,9 +130,15 @@ export function ScannerScreen() {
 
   return (
     <SafeAreaView style={[styles.safeContainer, { paddingTop: SAFE_TOP }]}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.flex}
+      keyboardVerticalOffset={SAFE_TOP}
+    >
     <ScrollView
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
       <PageHeader
         title="Identificar Animal"
@@ -243,6 +249,7 @@ export function ScannerScreen() {
         />
       ) : null}
     </ScrollView>
+    </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -251,6 +258,9 @@ const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  flex: {
+    flex: 1,
   },
   container: {
     flexGrow: 1,
