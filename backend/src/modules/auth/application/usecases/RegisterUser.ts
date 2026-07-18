@@ -30,8 +30,8 @@ export class RegisterUser {
       throw new AuthError("Email invalido.", 400);
     }
 
-    if (senha.length < 6) {
-      throw new AuthError("A senha deve ter ao menos 6 caracteres.", 400);
+    if (senha.length < 8) {
+      throw new AuthError("A senha deve ter ao menos 8 caracteres.", 400);
     }
 
     const existing = await this.userRepository.findByEmail(email);

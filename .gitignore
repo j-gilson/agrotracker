@@ -4,6 +4,16 @@
 node_modules/
 out/
 
+# generated reports and temporary analysis files
+coverage/
+backend/coverage/
+frontend/coverage/
+tmp_*.txt
+tmp_*/
+depcheck-*.json
+backend/depcheck-*.json
+frontend/depcheck-*.json
+
 # Expo
 .expo/
 dist/
@@ -33,6 +43,13 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+.env.development
+.env.production
+frontend/.env.development
+frontend/.env.production
+backend/.env
+!frontend/.env.development
 
 # typescript
 *.tsbuildinfo

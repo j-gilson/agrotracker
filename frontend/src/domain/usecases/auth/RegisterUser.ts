@@ -8,8 +8,8 @@ export class RegisterUser {
     if (!input.nome?.trim()) throw new Error('Nome obrigatorio.');
     if (!input.email?.trim()) throw new Error('Email obrigatorio.');
     if (!input.email.includes('@')) throw new Error('Email invalido.');
-    if (!input.senha || input.senha.length < 6)
-      throw new Error('A senha deve ter ao menos 6 caracteres.');
+    if (!input.senha || input.senha.length < 8)
+      throw new Error('A senha deve ter ao menos 8 caracteres.');
 
     return this.authRepository.register({
       nome: input.nome.trim(),
